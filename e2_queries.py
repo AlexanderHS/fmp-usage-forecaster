@@ -18,14 +18,13 @@ def get_raw_order_data(dollars: bool = False) -> List[models.OrderLine]:
     logging.info("Connected to database")
     cursor = cnxn.cursor()
     query = """
-DECLARE @CurrentDate DATE = GETDATE();
-DECLARE @DateLimit DATE = DATEADD(year, -7, getdate());
+SET NOCOUNT ON;
 SELECT 
     itm.ItemCode, 
     sol.QtyOrdered, 
     ipkg.ConversionUnits, 
     CONVERT(VARCHAR(10), sol.DateRequired, 120) AS DateRequired,
-	si.SiteName
+    si.SiteName
 FROM 
     SalesOrderLine AS sol
 INNER JOIN 
@@ -37,16 +36,16 @@ INNER JOIN
 INNER JOIN 
     ItemPackaging AS ipkg ON ipkg.ItemPackagingID = sol.ItemPackagingID
 INNER JOIN
-	Site as si on si.SiteID = so.SiteID
+    Site as si on si.SiteID = so.SiteID
 INNER JOIN
-	Customer as cu on cu.CustomerID = so.CustomerID
+    Customer as cu on cu.CustomerID = so.CustomerKey
 WHERE 
-    sol.DateRequired < @CurrentDate 
-    AND sol.DateRequired > @DateLimit
+    sol.DateRequired < GETDATE()
+    AND sol.DateRequired > DATEADD(year, -7, GETDATE())
     AND ets.IsCancelled = 0 
     AND ets.IsOnHold = 0
     AND sol.QtyOrdered > 0
-	AND cu.CustomerCode != 'FAI101';
+    AND cu.CustomerCode != 'FAI101';
     """
     orders: List[models.OrderLine] = []
     cursor.execute(query)
