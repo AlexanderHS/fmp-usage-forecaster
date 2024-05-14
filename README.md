@@ -78,8 +78,10 @@ nano ~/.bash_profile
 
 Add these lines to the file:
 
+```bash
 export E2_DB_USER="your_db_user_here"
 export E2_DB_PW="your_db_pw_here"
+```
 
 Save and exit the editor, then source the file:
 
