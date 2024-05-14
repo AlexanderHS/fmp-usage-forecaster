@@ -13,37 +13,41 @@ This endpoint retrieves order-related data for a specified item.
 #### URL Parameters:
 item_code (path parameter): A unique identifier for the item. This parameter must be included in the URL path.
 #### Query Parameters:
-- days (integer, optional): Number of days into the future for which predictions should be calculated. Defaults to 30 days.
-- total_only (boolean, optional): If set to true, returns only the total predicted quantity for the specified period. Defaults to false.
-- past_orders_only (boolean, optional): If set to true, returns only the data for past orders. Defaults to false.
-- future_orders_only (boolean, optional): If set to true, returns only the predicted future orders. Defaults to false.
-- all_dates_only (boolean, optional): If set to true, returns both past and future orders. If smoothing is applied, data will be smoothed. Defaults to false.
-- smoothing (integer, optional): Smoothing factor to apply to the combined data of past and future orders. Applies only if all_dates_only is true. Defaults to 9.
-- site_filter (string, optional): A filter to apply for selecting orders from a specific site. No default.
-- site_filter2 (string, optional): A secondary filter to include orders matching another site condition. No default.
+- __days (integer, optional)__: Number of days into the future for which predictions should be calculated. Defaults to 30 days.
+- __total_only__ (boolean, optional): If set to true, returns only the total predicted quantity for the specified period. Defaults to false.
+- __past_orders_only__ (boolean, optional): If set to true, returns only the data for past orders. Defaults to false.
+- __future_orders_only__ (boolean, optional): If set to true, returns only the predicted future orders. Defaults to false.
+- __all_dates_only__ (boolean, optional): If set to true, returns both past and future orders. If smoothing is applied, data will be smoothed. Defaults to false.
+- __smoothing__ (integer, optional): Smoothing factor to apply to the combined data of past and future orders. Applies only if all_dates_only is true. Defaults to 9.
+- __site_filter__ (string, optional): A filter to apply for selecting orders from a specific site. No default.
+- __site_filter2__ (string, optional): A secondary filter to include orders matching another site condition. No default.
 
 #### Examples
-Basic Usage:
+__Basic Usage__:
 ```
 GET /DIF7002
 ```
 Retrieves all data (predictions and past orders) for the item with code DIF7002 for the next 30 days.
-Total Predictions Only:
+
+__Total Predictions Only__:
 ```
 GET /MIX1001?total_only=true
 ```
 Returns the total predicted quantity for item MIX1001 over the default period of 30 days.
-Past Orders with Specific Site Filter:
+
+__Past Orders with Specific Site Filter__:
 ```
 GET /DCC8007?past_orders_only=true&site_filter=90%20Prosperity
 ```
 Retrieves all past orders for item DCC8007 that are from '90 Prosperity'.
-Future Orders with Smoothing Applied:
+
+__Future Orders with Smoothing Applied__:
 ```
 GET /LISS4122?future_orders_only=true&smoothing=5
 ```
 Returns smoothed prediction data for item LISS4122 for the next 30 days, using a smoothing factor of 5.
-All Dates with Two Site Filters:
+
+__All Dates with Two Site Filters__:
 ```
 GET /DIF7002?all_dates_only=true&site_filter=WA%20Warehouse&site_filter2=Rotterdam%20Warehouse
 ```
