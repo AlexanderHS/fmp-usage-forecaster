@@ -58,9 +58,9 @@ def get_order(item_code):
     if total_only:
         return {'total': int(data['prediction_period_total'])}
     if past_orders_only:
-        return data['past_orders']
+        return predictions.smooth_predictions(data['past_orders'], smoothing_days=smoothing)
     if future_orders_only:
-        return data['predictions']
+        return predictions.smooth_predictions(data['predictions'], smoothing_days=smoothing)
     if smoothing > 0 and all_dates_only:
         return predictions.smooth_predictions(data['past_orders'] + data['predictions'], smoothing)
     if all_dates_only:

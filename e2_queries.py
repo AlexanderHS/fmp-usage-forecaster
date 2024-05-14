@@ -24,7 +24,11 @@ SELECT
     sol.QtyOrdered, 
     ipkg.ConversionUnits, 
     CONVERT(VARCHAR(10), sol.DateRequired, 120) AS DateRequired,
-    si.SiteName
+    CASE 
+        WHEN si.SiteName = '11 Warehouse' THEN '90 Prosperity'
+        WHEN si.SiteName = '17 Warehouse' THEN '90 Prosperity'
+        ELSE si.SiteName 
+    END AS SiteName
 FROM 
     SalesOrderLine AS sol
 INNER JOIN 
@@ -45,7 +49,8 @@ WHERE
     AND ets.IsCancelled = 0 
     AND ets.IsOnHold = 0
     AND sol.QtyOrdered > 0
-    AND cu.CustomerCode != 'FAI101';
+    AND cu.CustomerCode != 'FAI101'
+	AND si.SiteName not like '%SAMPLE%';
     """
     orders: List[models.OrderLine] = []
     cursor.execute(query)
