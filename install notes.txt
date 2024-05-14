@@ -1,0 +1,13 @@
+recommend nginx config (default location /etc/nginx/sites-enabled/default') has something like:
+
+
+server {
+       listen 80;
+       listen [::]:80;
+
+       server_name fmp-pred.net;
+
+       location / {
+                proxy_pass http://127.0.0.1:8099;
+       }
+}
