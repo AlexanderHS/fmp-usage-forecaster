@@ -1,15 +1,21 @@
 from decimal import Decimal
 from typing import Dict, List
 import pyodbc
+import logging
 
 # modules
 import configs
 import models
 from cache import time_limited_cache
 
+logging.basicConfig(level=logging.DEBUG)
+
 @time_limited_cache(max_age_seconds=1600)
 def get_raw_order_data(dollars: bool = False) -> List[models.OrderLine]:
+    logging.info("Connecting to database")
+    logging.info(f'connect string: {configs.read_connect_string}')
     cnxn = pyodbc.connect(configs.read_connect_string)
+    logging.info("Connected to database")
     cursor = cnxn.cursor()
     query = """
 DECLARE @CurrentDate DATE = GETDATE();
@@ -35,8 +41,6 @@ INNER JOIN
 INNER JOIN
 	Customer as cu on cu.CustomerID = so.CustomerID
 WHERE 
-    --so.DivisionID = 1 
-    --AND
     sol.DateRequired < @CurrentDate 
     AND sol.DateRequired > @DateLimit
     AND ets.IsCancelled = 0 
