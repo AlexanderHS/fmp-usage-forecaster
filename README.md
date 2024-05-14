@@ -21,6 +21,7 @@ item_code (path parameter): A unique identifier for the item. This parameter mus
 - __smoothing__ (integer, optional): Smoothing factor to apply to the combined data of past and future orders. Applies only if all_dates_only is true. Defaults to 9.
 - __site_filter__ (string, optional): A filter to apply for selecting orders from a specific site. No default.
 - __site_filter2__ (string, optional): A secondary filter to include orders matching another site condition. No default.
+- __dollars__: (boolean, optional): If set to true, performs all processing with dollar values rather than quantity in eaches. Experimental.
 
 #### Examples
 __Basic Usage__:
