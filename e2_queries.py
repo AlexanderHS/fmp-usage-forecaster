@@ -38,7 +38,7 @@ INNER JOIN
 INNER JOIN
     Site as si on si.SiteID = so.SiteID
 INNER JOIN
-    Customer as cu on cu.CustomerID = so.CustomerKey
+    Customer as cu on cu.CustomerID = so.CustomerID
 WHERE 
     sol.DateRequired < GETDATE()
     AND sol.DateRequired > DATEADD(year, -7, GETDATE())
