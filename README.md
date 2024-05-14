@@ -35,3 +35,7 @@ source ~/.bash_profile
 ```
 
 This will apply the environment variables to your current session and all future sessions.
+
+### Usage
+
+/LISS4122?site_filter=UK

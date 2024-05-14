@@ -34,8 +34,9 @@ INNER JOIN
 INNER JOIN
 	Customer as cu on cu.CustomerID = so.CustomerID
 WHERE 
-    so.DivisionID = 1 
-    AND sol.DateRequired < @CurrentDate 
+    --so.DivisionID = 1 
+    --AND
+    sol.DateRequired < @CurrentDate 
     AND sol.DateRequired > @DateLimit
     AND ets.IsCancelled = 0 
     AND ets.IsOnHold = 0
