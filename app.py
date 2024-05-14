@@ -32,7 +32,7 @@ def get_order(item_code):
         'future_orders_only', default=False, type=to_bool)
     all_dates_only = request.args.get(
         'all_dates_only', default=False, type=to_bool)
-    smoothing = request.args.get('smoothing', default=9, type=int)
+    smoothing = request.args.get('smoothing', default=14, type=int)
     site_filter = request.args.get('site_filter', default=None, type=str)
     site_filter2 = request.args.get('also_include_site_matching', default=None, type=str)
 
