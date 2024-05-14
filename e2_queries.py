@@ -1,4 +1,5 @@
-from typing import List
+from decimal import Decimal
+from typing import Dict, List
 import pyodbc
 
 # modules
@@ -7,7 +8,7 @@ import models
 from cache import time_limited_cache
 
 @time_limited_cache(max_age_seconds=1600)
-def get_raw_order_data() -> List[models.OrderLine]:
+def get_raw_order_data(dollars: bool = False) -> List[models.OrderLine]:
     cnxn = pyodbc.connect(configs.read_connect_string)
     cursor = cnxn.cursor()
     query = """
@@ -46,12 +47,34 @@ WHERE
     orders: List[models.OrderLine] = []
     cursor.execute(query)
     rows = cursor.fetchall()
+    if dollars:
+        item_costs: Dict[str, Decimal] = get_item_costs()
     for row in rows:
+        if dollars == False or row.ItemCode in item_costs:
+            qty_or_value = int(int(row.QtyOrdered * row.ConversionUnits) * item_costs[row.ItemCode]) if dollars else int(
+                row.QtyOrdered * row.ConversionUnits)
         order_line = models.OrderLine(
             code= row.ItemCode,
-            base_qty= int(row.QtyOrdered * row.ConversionUnits),
+            base_qty=qty_or_value,
             date= row.DateRequired,
             site= row.SiteName
             )
         orders.append(order_line)
     return orders
+
+
+@time_limited_cache(max_age_seconds=1600)
+def get_item_costs() -> Dict[str, Decimal]:
+    cnxn = pyodbc.connect(configs.read_connect_string)
+    cursor = cnxn.cursor()
+    query = """
+SELECT [t0].[Code], [t0].[AvgPriceAUDEach], [t0].[ListPriceAUDEach]
+FROM [ManagementPortal].[dbo].[Item] AS [t0]
+    """
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    item_costs = {}
+    for row in rows:
+        if row.AvgPriceAUDEach or row.ListPriceAUDEach:
+            item_costs[row.Code] = Decimal(row.AvgPriceAUDEach) if row.AvgPriceAUDEach else Decimal(row.ListPriceAUDEach)
+    return item_costs

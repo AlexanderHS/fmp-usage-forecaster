@@ -13,7 +13,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    return e2_queries.get_raw_order_data()
+    return get_order(None)
 
 
 def to_bool(value):
@@ -34,15 +34,16 @@ def get_order(item_code):
         'all_dates_only', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=14, type=int)
     site_filter = request.args.get('site_filter', default=None, type=str)
-    site_filter2 = request.args.get('also_include_site_matching', default=None, type=str)
+    site_filter2 = request.args.get('site_filter2', default=None, type=str)
+    dollars = request.args.get('dollars', default=False, type=to_bool)
 
     logging.info(f"days: {days}")
     logging.info(f"future_orders_only: {future_orders_only}")
 
     # Retrieve data
-    past_orders = [(x.date, x.qty) for x in predictions.get_orders(item_code, site_filter=site_filter, site_filter2=site_filter2)]
+    past_orders = [(x.date, x.qty) for x in predictions.get_orders(item_code, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)]
     predictions_model = predictions.get_predictions(
-        item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2)
+        item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
 
     data = {
         'item_code': item_code,
