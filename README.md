@@ -85,7 +85,7 @@ export E2_DB_PW="your_db_pw_here"
 
 Save and exit the editor, then source the file:
 
-```
+```bash
 source ~/.bash_profile
 ```
 
