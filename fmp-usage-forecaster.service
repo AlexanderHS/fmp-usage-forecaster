@@ -12,6 +12,8 @@ Restart=always
 RestartSec=30
 StartLimitInterval=350
 StartLimitBurst=10
+Environment="E2_DB_USER=???"
+Environment="E2_DB_PW=???"
 
 [Install]
 WantedBy=multi-user.target
