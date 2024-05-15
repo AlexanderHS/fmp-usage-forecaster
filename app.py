@@ -51,7 +51,7 @@ def get_order(item_code):
 
     # Retrieve data
     past_orders = [(x.date, x.qty) for x in predictions.get_orders(item_code, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)]
-    predictions_model = predictions.get_predictions(
+    predictions_model = predictions.get_predictions_neural(
         item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
 
     data = {
@@ -69,8 +69,6 @@ def get_order(item_code):
     if total_past_only:
         # return the total of past orders using only the most recent days
         recent_past = data['past_orders'][-days:]
-        print(len(recent_past))
-        print(recent_past)
         return {'total_past': sum([x[1] for x in recent_past])}
     if yearly_growth_only:
         last_year_data = data['past_orders'][-days:]
