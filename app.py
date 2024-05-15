@@ -51,7 +51,7 @@ def get_order(item_code):
 
     # Retrieve data
     past_orders = [(x.date, x.qty) for x in predictions.get_orders(item_code, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)]
-    predictions_model = predictions.get_predictions_neural(
+    predictions_model = predictions.get_predictions(
         item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
 
     data = {
