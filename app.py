@@ -28,6 +28,7 @@ def get_order(item_code):
         item_code = None
     days = request.args.get('days', default=30, type=int)
     total_only = request.args.get('total_only', default=False, type=to_bool)
+    total_past_only = request.args.get('total_past_only', default=False, type=to_bool)
     past_orders_only = request.args.get(
         'past_orders_only', default=False, type=to_bool)
     future_orders_only = request.args.get(
@@ -61,6 +62,10 @@ def get_order(item_code):
     # Return data based on query params
     if total_only:
         return {'total': int(data['prediction_period_total'])}
+    if total_past_only:
+        # return the total of past orders using only the most recent days
+        recent_past = data['past_orders'][-days:]
+        return {'total_past': sum([x[1] for x in recent_past])}
     if past_orders_only:
         return predictions.smooth_predictions(data['past_orders'], smoothing_days=smoothing)
     if future_orders_only:
