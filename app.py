@@ -24,6 +24,8 @@ def to_bool(value):
 @app.route('/<item_code>')
 def get_order(item_code):
     # Default parameters
+    if item_code is '-NONE-':
+        item_code = None
     days = request.args.get('days', default=30, type=int)
     total_only = request.args.get('total_only', default=False, type=to_bool)
     past_orders_only = request.args.get(
@@ -34,6 +36,8 @@ def get_order(item_code):
         'all_dates_only', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=14, type=int)
     site_filter = request.args.get('site_filter', default=None, type=str)
+    if site_filter == '-NONE-':
+        site_filter = None
     site_filter2 = request.args.get('site_filter2', default=None, type=str)
     dollars = request.args.get('dollars', default=False, type=to_bool)
 
