@@ -24,7 +24,7 @@ def to_bool(value):
 @app.route('/<item_code>')
 def get_order(item_code):
     # Default parameters
-    if item_code is '-NONE-':
+    if item_code == '-NONE-':
         item_code = None
     days = request.args.get('days', default=30, type=int)
     total_only = request.args.get('total_only', default=False, type=to_bool)
