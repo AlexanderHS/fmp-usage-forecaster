@@ -28,7 +28,10 @@ def get_order(item_code):
         item_code = None
     days = request.args.get('days', default=30, type=int)
     total_only = request.args.get('total_only', default=False, type=to_bool)
-    total_past_only = request.args.get('total_past_only', default=False, type=to_bool)
+    neural = request.args.get(
+        'neural', default=False, type=to_bool)
+    total_past_only = request.args.get(
+        'total_past_only', default=False, type=to_bool)
     past_orders_only = request.args.get(
         'past_orders_only', default=False, type=to_bool)
     future_orders_only = request.args.get(
@@ -51,8 +54,12 @@ def get_order(item_code):
 
     # Retrieve data
     past_orders = [(x.date, x.qty) for x in predictions.get_orders(item_code, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)]
+    
     predictions_model = predictions.get_predictions(
         item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
+    if neural:
+        predictions_model = predictions.get_predictions_neural(
+            item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
 
     data = {
         'item_code': item_code,
