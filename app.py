@@ -35,6 +35,10 @@ def get_order(item_code):
         'future_orders_only', default=False, type=to_bool)
     all_dates_only = request.args.get(
         'all_dates_only', default=False, type=to_bool)
+    yearly_growth_only = request.args.get(
+        'yearly_growth_only', default=False, type=to_bool)
+    if yearly_growth_only:
+        days = 365
     smoothing = request.args.get('smoothing', default=14, type=int)
     site_filter = request.args.get('site_filter', default=None, type=str)
     if site_filter == '-NONE-':
@@ -66,6 +70,12 @@ def get_order(item_code):
         # return the total of past orders using only the most recent days
         recent_past = data['past_orders'][-days:]
         return {'total_past': sum([x[1] for x in recent_past])}
+    if yearly_growth_only:
+        last_year_data = data['past_orders'][-days:]
+        last_year_total = sum([x[1] for x in last_year_data])
+        next_year_total = data['prediction_period_total']
+        growth_percentage = (next_year_total - last_year_total) / last_year_total
+        return {'growth_percentage': growth_percentage}
     if past_orders_only:
         return predictions.smooth_predictions(data['past_orders'], smoothing_days=smoothing)
     if future_orders_only:
