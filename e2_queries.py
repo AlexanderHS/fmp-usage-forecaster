@@ -7,10 +7,12 @@ import logging
 import configs
 import models
 from cache import time_limited_cache
+from cache import CACHE_SECONDS
 
 logging.basicConfig(level=logging.DEBUG)
 
-@time_limited_cache(max_age_seconds=1600)
+
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_raw_order_data(dollars: bool = False) -> List[models.OrderLine]:
     logging.info("Connecting to database")
     logging.info(f'connect string: {configs.read_connect_string}')
@@ -71,7 +73,7 @@ WHERE
     return orders
 
 
-@time_limited_cache(max_age_seconds=1600)
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_item_costs() -> Dict[str, Decimal]:
     cnxn = pyodbc.connect(configs.read_connect_string)
     cursor = cnxn.cursor()

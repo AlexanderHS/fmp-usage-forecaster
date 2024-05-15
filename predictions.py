@@ -9,17 +9,20 @@ import logging
 import e2_queries
 import models
 from cache import time_limited_cache
+from cache import CACHE_SECONDS
 
 logging.basicConfig(level=logging.DEBUG)
 
-@time_limited_cache(max_age_seconds=1600)
+
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def generate_date_range(start_date: str, end_date: str) -> List[str]:
     """Generates a list of dates from start_date to end_date in ISO 8601 format."""
     start = datetime.datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.datetime.strptime(end_date, "%Y-%m-%d")
     return [(start + datetime.timedelta(days=i)).strftime("%Y-%m-%d") for i in range((end - start).days + 1)]
 
-@time_limited_cache(max_age_seconds=1600)
+
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_orders(item_code: str, site_filter: str = None, site_filter2: str = None, dollars: bool = False) -> List[models.OrderDay]:
     # Get raw order data
     raw_data = e2_queries.get_raw_order_data(dollars=dollars)
@@ -93,7 +96,8 @@ def smooth_predictions(data, smoothing_days):
 
     return smoothed_data
 
-@time_limited_cache(max_age_seconds=1600)
+
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_predictions(item_code: str, days: int = 30, site_filter: str = None, site_filter2: str = None, dollars: bool = False) -> List[tuple]:
     order_history = get_orders(item_code, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
     

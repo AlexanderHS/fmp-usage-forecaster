@@ -3,6 +3,8 @@ import threading
 import time
 
 
+CACHE_SECONDS = 14_400 # 4 hours
+
 def time_limited_cache(max_age_seconds):
     def decorator(func):
         cache = {}
