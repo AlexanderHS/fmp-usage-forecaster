@@ -9,5 +9,5 @@ class OrderLine:
 
 @dataclass
 class OrderDay:
-    date: str # 10 char ISO 801
+    date: str # 10 char ISO 8601
     qty: int
