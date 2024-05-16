@@ -12,7 +12,8 @@ logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
 
 @app.route('/')
-def hello_world():
+def base_url():
+    # handles base case with no item code
     return get_order(None)
 
 
