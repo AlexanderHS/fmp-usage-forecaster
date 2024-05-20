@@ -5,11 +5,12 @@ import time
 
 CACHE_SECONDS = 14_400 # 4 hours
 
-def time_limited_cache(max_age_seconds):
-    def decorator(func):
-        cache = {}
-        locks = {}
 
+def time_limited_cache(max_age_seconds):
+    cache = {}
+    locks = {}
+
+    def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             key = (args, tuple(sorted(kwargs.items())))
@@ -32,5 +33,11 @@ def time_limited_cache(max_age_seconds):
                 value = func(*args, **kwargs)
                 cache[key] = (value, time.time())
                 return value
+
+        def clear_cache():
+            cache.clear()
+            locks.clear()
+
+        wrapper.clear_cache = clear_cache
         return wrapper
     return decorator
