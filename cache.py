@@ -3,7 +3,7 @@ import threading
 import time
 
 
-CACHE_SECONDS = 14_400 # 4 hours
+CACHE_SECONDS = 900 # 15 minutes
 
 
 def time_limited_cache(max_age_seconds):
