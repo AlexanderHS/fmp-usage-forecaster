@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 @time_limited_cache(max_age_seconds=120)
-def get_orders_placed_today(item_code: str, dollars: bool) -> Decimal:
+def get_orders_placed_today(dollars: bool) -> Decimal:
     cnxn = pyodbc.connect(configs.read_connect_string)
     cursor = cnxn.cursor()
     query = """
