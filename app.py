@@ -104,6 +104,9 @@ def get_order(item_code):
     if reload_cache:
         predictions.get_orders.clear_cache()
         e2_queries.get_raw_order_data.clear_cache()
+        print('Cleared cache')
+        print('Cleared cache')
+        print('Cleared cache')
     days = request.args.get('days', default=30, type=int)
     total_only = request.args.get('total_only', default=False, type=to_bool)
     neural = request.args.get(
