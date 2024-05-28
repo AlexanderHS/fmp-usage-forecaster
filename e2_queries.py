@@ -217,5 +217,5 @@ WHERE
                         raise ValueError(
                             f"String {input_value} is not a valid date format")
         else:
-            raise ValueError(f"Cannot convert type {
-                            type(input_value)} to ISO 8601 date string")
+            raise ValueError(f"Cannot convert type",
+                            f"{type(input_value)} to ISO 8601 date string")
