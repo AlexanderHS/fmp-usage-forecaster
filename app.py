@@ -31,6 +31,7 @@ def wait_dates():
 
 @app.route('/wait/<item_code>')
 def wait_times(item_code: str = None):
+    return {'none': 'none'}
     """Returns the wait times for each item."""
     if item_code == '-NONE-':
         item_code = None
