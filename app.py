@@ -31,7 +31,7 @@ def wait_dates():
 
 @app.route('/wait/<item_code>')
 def wait_times(item_code: str = None):
-    return {'none': 'none'}
+    #return {'none': 'none'}
     """Returns the wait times for each item."""
     if item_code == '-NONE-':
         item_code = None
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 
     # PRODUCTION ENVIRONMENT
     if os.name == "posix":
-        app.run(host='0.0.0.0', port=8099, debug=True)
+        #app.run(host='0.0.0.0', port=8099, debug=True)
         from waitress import serve
         serve(app, host="0.0.0.0", port=8099)
     # TESTING ENVIRONMENT

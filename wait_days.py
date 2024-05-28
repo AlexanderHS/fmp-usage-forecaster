@@ -1,12 +1,12 @@
 
 
-from typing import List
+from typing import List, Set
 
 # modules
 import models
 from cache import time_limited_cache, CACHE_SECONDS
 
-def get_wait_dates(lines: List[models.WaitDatabaseLine]) -> List[models.WaitDate]:
+def get_wait_dates(lines: Set[models.WaitDatabaseLine]) -> List[models.WaitDate]:
     dates = {}
     for line in lines:
         if line.date_str not in dates:
