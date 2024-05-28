@@ -27,6 +27,17 @@ def get_order(item_code):
     # Default parameters
     if item_code == '-NONE-':
         item_code = None
+    reload_cache = request.args.get(
+        'reload_cache', default=False, type=to_bool)
+    orders_placed_today = request.args.get(
+        'orders_placed_today', default=False, type=to_bool)
+    dollars = request.args.get('dollars', default=False, type=to_bool)
+    if orders_placed_today:
+        result = e2_queries.get_orders_placed_today(item_code, dollars)
+        return {'orders_placed_today': int(result)}
+    if reload_cache:
+        predictions.get_orders.clear_cache()
+        e2_queries.get_raw_order_data.clear_cache()
     days = request.args.get('days', default=30, type=int)
     total_only = request.args.get('total_only', default=False, type=to_bool)
     neural = request.args.get(
@@ -48,26 +59,25 @@ def get_order(item_code):
     if site_filter == '-NONE-':
         site_filter = None
     site_filter2 = request.args.get('site_filter2', default=None, type=str)
-    dollars = request.args.get('dollars', default=False, type=to_bool)
 
     logging.info(f"days: {days}")
     logging.info(f"future_orders_only: {future_orders_only}")
 
     # Retrieve data
     past_orders = [(x.date, x.qty) for x in predictions.get_orders(item_code, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)]
-    
-    predictions_model = predictions.get_predictions(
-        item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
-    if neural:
-        predictions_model = predictions.get_predictions_neural(
+    if not past_orders_only:
+        predictions_model = predictions.get_predictions(
             item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
+        if neural:
+            predictions_model = predictions.get_predictions_neural(
+                item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
 
     data = {
         'item_code': item_code,
         'days': days,
-        'predictions': predictions_model,
+        'predictions': predictions_model if not past_orders_only else None,
         'past_orders': past_orders,
-        'prediction_period_total': max(0, sum([x[1] for x in predictions_model])),
+        'prediction_period_total': max(0, sum([x[1] for x in predictions_model])) if not past_orders_only else None,
         'past_orders_total': sum([x[1] for x in past_orders])
     }
 

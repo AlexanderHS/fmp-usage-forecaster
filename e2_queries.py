@@ -12,6 +12,53 @@ from cache import CACHE_SECONDS
 logging.basicConfig(level=logging.DEBUG)
 
 
+@time_limited_cache(max_age_seconds=120)
+def get_orders_placed_today(item_code: str, dollars: bool) -> Decimal:
+    cnxn = pyodbc.connect(configs.read_connect_string)
+    cursor = cnxn.cursor()
+    query = """
+-- Define excluded customer code parameter
+DECLARE @ExcludedCustomerCode NVARCHAR(1000) = 'FAI101';
+
+-- Calculate the total value of orders entered today excluding specified customer
+SELECT 
+    SUM(itm.[AvgPriceAUDEach] * ip.ConversionUnits * sol.QtyOrdered) AS TotalValue
+FROM 
+    [SalesOrderLine] AS sol
+    INNER JOIN [SalesOrder] AS so ON so.[SalesOrderID] = sol.[SalesOrderID]
+    INNER JOIN [Customer] AS cust ON cust.[CustomerID] = so.[CustomerID]
+	inner join [item] as i on i.ItemID = sol.ItemID
+	inner join [ItemPackaging] as ip on ip.ItemPackagingID = sol.ItemPackagingID
+    INNER JOIN [ManagementPortal].[dbo].[Item] AS itm ON itm.Code = i.ItemCode
+WHERE 
+    CONVERT(DATE, sol.[CreatedDate]) = CAST(GETDATE() AS DATE)
+    AND cust.[CustomerCode] <> @ExcludedCustomerCode;
+"""
+    if not dollars:
+        query = """
+-- Define excluded customer code parameter
+DECLARE @ExcludedCustomerCode NVARCHAR(1000) = 'FAI101';
+
+-- Calculate the total value of orders entered today excluding specified customer
+SELECT 
+    SUM(ip.ConversionUnits * sol.QtyOrdered) AS TotalValue
+FROM 
+    [SalesOrderLine] AS sol
+    INNER JOIN [SalesOrder] AS so ON so.[SalesOrderID] = sol.[SalesOrderID]
+    INNER JOIN [Customer] AS cust ON cust.[CustomerID] = so.[CustomerID]
+	inner join [item] as i on i.ItemID = sol.ItemID
+	inner join [ItemPackaging] as ip on ip.ItemPackagingID = sol.ItemPackagingID
+    INNER JOIN [ManagementPortal].[dbo].[Item] AS itm ON itm.Code = i.ItemCode
+WHERE 
+    CONVERT(DATE, sol.[CreatedDate]) = CAST(GETDATE() AS DATE)
+    AND cust.[CustomerCode] <> @ExcludedCustomerCode;
+        """
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    for row in rows:
+        return row.TotalValue
+        
+
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_raw_order_data(dollars: bool = False) -> List[models.OrderLine]:
     logging.info("Connecting to database")
