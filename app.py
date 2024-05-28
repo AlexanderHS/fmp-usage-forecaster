@@ -99,7 +99,7 @@ def get_order(item_code):
         'orders_placed_today', default=False, type=to_bool)
     dollars = request.args.get('dollars', default=False, type=to_bool)
     if orders_placed_today:
-        result = e2_queries.get_orders_placed_today(item_code, dollars)
+        result = e2_queries.get_orders_placed_today(dollars)
         return {'orders_placed_today': int(result)}
     if reload_cache:
         predictions.get_orders.clear_cache()
