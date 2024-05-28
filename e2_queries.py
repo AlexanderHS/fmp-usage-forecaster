@@ -137,6 +137,9 @@ FROM [ManagementPortal].[dbo].[Item] AS [t0]
 class WaitTimes():
     @time_limited_cache(max_age_seconds=CACHE_SECONDS)
     def get_raw_order_data(years: int = 7) -> List[models.WaitDatabaseLine]:
+        print("Connecting to database")
+        print("Connecting to database")
+        print("Connecting to database")
         cnxn = pyodbc.connect(configs.read_connect_string)
         cursor = cnxn.cursor()
         query = """
