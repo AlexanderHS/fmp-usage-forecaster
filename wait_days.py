@@ -6,7 +6,6 @@ from typing import List
 import models
 from cache import time_limited_cache, CACHE_SECONDS
 
-@time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_wait_dates(lines: List[models.WaitDatabaseLine]) -> List[models.WaitDate]:
     dates = {}
     for line in lines:
@@ -21,7 +20,6 @@ def get_wait_dates(lines: List[models.WaitDatabaseLine]) -> List[models.WaitDate
     return wait_dates
 
 
-@time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def smooth_wait_dates(wait_dates: List[models.WaitDate], smoothing: int) -> List[models.WaitDate]:
     smoothed_dates = []
     total_dates = len(wait_dates)
