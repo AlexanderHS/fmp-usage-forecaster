@@ -17,9 +17,6 @@ def get_orders_placed_today(item_code: str, dollars: bool) -> Decimal:
     cnxn = pyodbc.connect(configs.read_connect_string)
     cursor = cnxn.cursor()
     query = """
--- Define excluded customer code parameter
-DECLARE @ExcludedCustomerCode NVARCHAR(1000) = 'FAI101';
-
 -- Calculate the total value of orders entered today excluding specified customer
 SELECT 
     SUM(itm.[AvgPriceAUDEach] * ip.ConversionUnits * sol.QtyOrdered) AS TotalValue
@@ -32,13 +29,10 @@ FROM
     INNER JOIN [ManagementPortal].[dbo].[Item] AS itm ON itm.Code = i.ItemCode
 WHERE 
     CONVERT(DATE, sol.[CreatedDate]) = CAST(GETDATE() AS DATE)
-    AND cust.[CustomerCode] <> @ExcludedCustomerCode;
+    AND cust.[CustomerCode] <> 'FAI101';
 """
     if not dollars:
         query = """
--- Define excluded customer code parameter
-DECLARE @ExcludedCustomerCode NVARCHAR(1000) = 'FAI101';
-
 -- Calculate the total value of orders entered today excluding specified customer
 SELECT 
     SUM(ip.ConversionUnits * sol.QtyOrdered) AS TotalValue
@@ -51,7 +45,7 @@ FROM
     INNER JOIN [ManagementPortal].[dbo].[Item] AS itm ON itm.Code = i.ItemCode
 WHERE 
     CONVERT(DATE, sol.[CreatedDate]) = CAST(GETDATE() AS DATE)
-    AND cust.[CustomerCode] <> @ExcludedCustomerCode;
+    AND cust.[CustomerCode] <> 'FAI101;
         """
     cursor.execute(query)
     rows = cursor.fetchall()
