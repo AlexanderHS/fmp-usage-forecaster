@@ -181,10 +181,19 @@ WHERE
             wait_times.append(wait_time_line)
         return wait_times
     
-    def parse_date(date: Union[str, datetime]) -> datetime:
-        if isinstance(date, datetime):
-            return date
-        return datetime.fromisoformat(date)
+    def parse_date(date_value: Union[str, datetime, date, None]) -> datetime:
+        if date_value is None:
+            raise ValueError("None is not a valid date value")
+        if isinstance(date_value, datetime):
+            return date_value
+        if isinstance(date_value, date):
+            return datetime.combine(date_value, datetime.min.time())
+        if isinstance(date_value, str):
+            try:
+                return datetime.fromisoformat(date_value)
+            except ValueError:
+                raise ValueError(f"Invalid date string format: {date_value}")
+        raise TypeError(f"Unsupported date type: {type(date_value)}")
 
     def to_iso8601_date(input_value):
         """

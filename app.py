@@ -25,6 +25,10 @@ def to_bool(value):
     return value.lower() == 'true' if isinstance(value, str) else bool(value)
 
 
+@app.route('/wait/')
+def wait_dates():
+    return wait_times(None)
+
 @app.route('/wait/<item_code>')
 def wait_times(item_code: str = None):
     """Returns the wait times for each item."""
