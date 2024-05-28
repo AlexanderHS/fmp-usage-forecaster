@@ -1,4 +1,5 @@
 import os
+from typing import List
 from flask import Flask, request
 
 # modules
@@ -6,6 +7,8 @@ import configs
 import logging
 import e2_queries
 import predictions
+import models
+import wait_days
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -20,6 +23,50 @@ def base_url():
 def to_bool(value):
     """Converts a string to a boolean if necessary."""
     return value.lower() == 'true' if isinstance(value, str) else bool(value)
+
+
+@app.route('/wait/')
+def wait_times():
+    """Returns the wait times for each item."""
+    item_code = request.args.get(
+        'item_code', default=False, type=str)
+    customer_code = request.args.get(
+        'customer_code', default=False, type=str)
+    site_filter = request.args.get(
+        'site_filter', default=None, type=str)
+    show_waits = request.args.get(
+        'show_waits', default=False, type=to_bool)
+    smoothing = request.args.get('smoothing', default=None, type=int)
+    raw_data = e2_queries.WaitTimes.get_raw_order_data()
+    raw_data: List[models.WaitDatabaseLine] = [x for x in raw_data if x.item_code == item_code] if item_code else raw_data
+    raw_data: List[models.WaitDatabaseLine] = [
+        x for x in raw_data if x.site.startswith(site_filter)] if site_filter else raw_data
+    raw_data: List[models.WaitDatabaseLine] = [
+        x for x in raw_data if x.customer_code == customer_code] if customer_code else raw_data
+    wait_dates = wait_days.get_wait_dates(raw_data)
+    wait_dates = sorted(wait_dates, key=lambda x: x.date)
+    if smoothing:
+        wait_dates = wait_days.smooth_wait_dates(wait_dates, smoothing)
+    if show_waits:
+        return {
+        'wait_times': raw_data,
+        'wait_dates': [{
+            'date': x.date,
+            'waits': [{
+                'qty': y.qty,
+                'wait_time_days': y.wait_time_days
+                } for y in x.waits]
+            } for x in wait_dates],
+        }
+    return {
+        #'wait_times': raw_data,
+        'wait_dates': [{
+            'date': x.date,
+            'qty': x.total_qty(),
+            'wait_days': x.wait_days
+            } for x in wait_dates],
+        }
+    
 
 
 @app.route('/<item_code>')
