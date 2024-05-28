@@ -25,11 +25,9 @@ def to_bool(value):
     return value.lower() == 'true' if isinstance(value, str) else bool(value)
 
 
-@app.route('/wait/')
-def wait_times():
+@app.route('/wait/<item_code>')
+def wait_times(item_code: str = None):
     """Returns the wait times for each item."""
-    item_code = request.args.get(
-        'item_code', default=False, type=str)
     customer_code = request.args.get(
         'customer_code', default=False, type=str)
     site_filter = request.args.get(
