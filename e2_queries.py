@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Dict, List
+from typing import Dict, List, Union
 import pyodbc
 import logging
 
@@ -170,7 +170,8 @@ WHERE
                 site= '90 Prosperity' if row.SiteName.startswith('11') or row.SiteName.startswith('17') else row.SiteName,
                 item_code=row.ItemCode,
                 customer_code=row.CustomerCode,
-                wait_time_days=(row.ProcessedDate - row.DateRequired).days,
+                wait_time_days=(WaitTimes.parse_date(row.ProcessedDate) -
+                                WaitTimes.parse_date(row.DateRequired)).days,
                 qty_eaches_sent=int(row.QtyEachDespatched),
                 date_required=row.DateRequired,
                 date_despatched=row.ProcessedDate,
@@ -179,7 +180,11 @@ WHERE
             )
             wait_times.append(wait_time_line)
         return wait_times
-        
+    
+    def parse_date(date: Union[str, datetime]) -> datetime:
+        if isinstance(date, datetime):
+            return date
+        return datetime.fromisoformat(date)
 
     def to_iso8601_date(input_value):
         """
