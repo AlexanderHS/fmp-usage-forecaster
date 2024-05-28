@@ -32,10 +32,16 @@ def wait_dates():
 @app.route('/wait/<item_code>')
 def wait_times(item_code: str = None):
     """Returns the wait times for each item."""
+    if item_code == '-NONE-':
+        item_code = None
     customer_code = request.args.get(
         'customer_code', default=False, type=str)
+    if customer_code == '-NONE-':
+        customer_code = None
     site_filter = request.args.get(
         'site_filter', default=None, type=str)
+    if site_filter == '-NONE-':
+        site_filter = None
     show_waits = request.args.get(
         'show_waits', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=None, type=int)
@@ -47,6 +53,17 @@ def wait_times(item_code: str = None):
         x for x in raw_data if x.customer_code == customer_code] if customer_code else raw_data
     wait_dates = wait_days.get_wait_dates(raw_data)
     wait_dates = sorted(wait_dates, key=lambda x: x.date)
+    
+    # insert missing days
+    if wait_dates:
+        start_date = wait_dates[0].date
+        end_date = wait_dates[-1].date
+        all_dates = predictions.generate_date_range(start_date, end_date)
+        all_dates = [x for x in all_dates if x not in [y.date for y in wait_dates]]
+        for date in all_dates:
+            wait_dates.append(models.WaitDate(date=date, waits=[]))
+        wait_dates = sorted(wait_dates, key=lambda x: x.date)
+    
     if smoothing:
         wait_dates = wait_days.smooth_wait_dates(wait_dates, smoothing)
     if show_waits:

@@ -45,6 +45,8 @@ class WaitDate:
         return sum([wait.qty for wait in self.waits])
     
     def wait_weighted_avg(self):
+        if self.total_qty() == 0:
+            return 0
         total = 0
         for wait in self.waits:
             total += wait.qty * wait.wait_time_days

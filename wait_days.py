@@ -22,14 +22,14 @@ def get_wait_dates(lines: List[models.WaitDatabaseLine]) -> List[models.WaitDate
 
 def smooth_wait_dates(wait_dates: List[models.WaitDate], smoothing: int) -> List[models.WaitDate]:
     smoothed_dates = []
-    for i in range(len(wait_dates)):
-        if i < smoothing:
-            smoothed_dates.append(wait_dates[i])
-        else:
-            waits = []
-            for j in range(max(0, i - smoothing), min(len(wait_dates), i + smoothing + 1)):
-                waits.extend(wait_dates[j].waits)
-            smoothed_dates.append(models.WaitDate(
-                date=wait_dates[i].date,
-                waits=waits))
+    total_dates = len(wait_dates)
+    for i in range(total_dates):
+        waits = []
+        start_index = max(0, i - smoothing)
+        end_index = min(total_dates, i + smoothing + 1)
+        for j in range(start_index, end_index):
+            waits.extend(wait_dates[j].waits)
+        smoothed_dates.append(models.WaitDate(
+            date=wait_dates[i].date,
+            waits=waits))
     return smoothed_dates
