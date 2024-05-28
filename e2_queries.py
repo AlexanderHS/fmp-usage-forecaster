@@ -181,6 +181,7 @@ WHERE
             wait_times.append(wait_time_line)
         return wait_times
     
+    @time_limited_cache(max_age_seconds=CACHE_SECONDS)
     def parse_date(date_value: Union[str, datetime, date, None]) -> datetime:
         if date_value is None:
             raise ValueError("None is not a valid date value")
@@ -195,6 +196,7 @@ WHERE
                 raise ValueError(f"Invalid date string format: {date_value}")
         raise TypeError(f"Unsupported date type: {type(date_value)}")
 
+    @time_limited_cache(max_age_seconds=CACHE_SECONDS)
     def to_iso8601_date(input_value):
         """
         Convert input to ISO 8601 date string.
