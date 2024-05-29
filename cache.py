@@ -22,8 +22,10 @@ def time_limited_cache(max_age_seconds):
             # If a lock does not exist for the key, create one
             if key not in locks:
                 locks[key] = threading.Lock()
+            lock = locks[key]
             # Use the lock to ensure only one thread recomputes the value
-            with locks[key]:
+            lock.acquire()
+            try:
                 # Check the cache again to avoid recomputing if another thread already did it
                 if key in cache:
                     value, timestamp = cache[key]
@@ -33,6 +35,8 @@ def time_limited_cache(max_age_seconds):
                 value = func(*args, **kwargs)
                 cache[key] = (value, time.time())
                 return value
+            finally:
+                lock.release()
 
         def clear_cache():
             cache.clear()

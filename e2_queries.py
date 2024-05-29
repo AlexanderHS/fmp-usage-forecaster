@@ -134,107 +134,110 @@ FROM [ManagementPortal].[dbo].[Item] AS [t0]
 
 # WAIT TIMES
 
-class WaitTimes():
-    @time_limited_cache(max_age_seconds=CACHE_SECONDS)
-    def get_raw_order_data(years: int = 7) -> List[models.WaitDatabaseLine]:
-        print("Connecting to database")
-        print("Connecting to database")
-        print("Connecting to database")
-        cnxn = pyodbc.connect(configs.read_connect_string)
-        cursor = cnxn.cursor()
-        query = """
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
+def get_raw_wait_data(years: int = 7) -> List[models.WaitDatabaseLine]:
+    print("Connecting to database")
+    print("Connecting to database")
+    print("Connecting to database")
+    cnxn = pyodbc.connect(configs.read_connect_string)
+    cursor = cnxn.cursor()
+    query = """
 -- Select the relevant columns with calculated quantity in each
 SELECT 
-    cast(cdl.ProcessedDate as date) as ProcessedDate, 
-    i.ItemCode, 
-    c.CustomerCode, 
-    cdl.QtyDespatched * ip.ConversionUnits AS QtyEachDespatched, 
-    s.SiteName, 
-    cast(sol.DateRequired as date) as DateRequired
+cast(cdl.ProcessedDate as date) as ProcessedDate, 
+i.ItemCode, 
+c.CustomerCode, 
+cdl.QtyDespatched * ip.ConversionUnits AS QtyEachDespatched, 
+s.SiteName, 
+cast(sol.DateRequired as date) as DateRequired
 FROM 
-    CustomerDespatchLine AS cdl
-    INNER JOIN EntityTypeTransactionStatus AS etts ON etts.EntityTypeTransactionStatusID = cdl.EntityTypeTransactionStatusID
-    INNER JOIN Item AS i ON i.ItemID = cdl.ItemID
-    INNER JOIN ItemPackaging AS ip ON ip.ItemPackagingID = cdl.ItemPackagingID
-    INNER JOIN CustomerDespatch AS cd ON cd.CustomerDespatchID = cdl.CustomerDespatchID
-    INNER JOIN Customer AS c ON cd.CustomerID = c.CustomerID
-    INNER JOIN Site AS s ON s.SiteID = cd.SiteID
-    LEFT OUTER JOIN SalesOrderLine AS sol ON sol.SalesOrderLineID = cdl.SalesOrderLineID
+CustomerDespatchLine AS cdl
+INNER JOIN EntityTypeTransactionStatus AS etts ON etts.EntityTypeTransactionStatusID = cdl.EntityTypeTransactionStatusID
+INNER JOIN Item AS i ON i.ItemID = cdl.ItemID
+INNER JOIN ItemPackaging AS ip ON ip.ItemPackagingID = cdl.ItemPackagingID
+INNER JOIN CustomerDespatch AS cd ON cd.CustomerDespatchID = cdl.CustomerDespatchID
+INNER JOIN Customer AS c ON cd.CustomerID = c.CustomerID
+INNER JOIN Site AS s ON s.SiteID = cd.SiteID
+LEFT OUTER JOIN SalesOrderLine AS sol ON sol.SalesOrderLineID = cdl.SalesOrderLineID
 WHERE 
-    etts.IsDespatched = 1 
-    AND cdl.ProcessedDate IS NOT NULL 
-    AND cdl.ProcessedDate > DATEADD(year, -7, GETDATE())
+etts.IsDespatched = 1 
+AND cdl.ProcessedDate IS NOT NULL 
+AND cdl.ProcessedDate > DATEADD(year, -7, GETDATE())
 """
-        cursor.execute(query)
-        rows = cursor.fetchall()
-        wait_times: List[models.WaitDatabaseLine] = []
-        for row in rows:
-            wait_time_line = models.WaitDatabaseLine(
-                site= '90 Prosperity' if row.SiteName.startswith('11') or row.SiteName.startswith('17') else row.SiteName,
-                item_code=row.ItemCode,
-                customer_code=row.CustomerCode,
-                wait_time_days=(WaitTimes.parse_date(row.ProcessedDate) -
-                                WaitTimes.parse_date(row.DateRequired)).days,
-                qty_eaches_sent=int(row.QtyEachDespatched),
-                date_required=row.DateRequired,
-                date_despatched=row.ProcessedDate,
-                date_str=WaitTimes.to_iso8601_date(
-                    row.ProcessedDate)
-            )
-            wait_times.append(wait_time_line)
-        return wait_times
-    
-    @time_limited_cache(max_age_seconds=CACHE_SECONDS)
-    def parse_date(date_value: Union[str, datetime, date, None]) -> datetime:
-        if date_value is None:
-            raise ValueError("None is not a valid date value")
-        if isinstance(date_value, datetime):
-            return date_value
-        if isinstance(date_value, date):
-            return datetime.combine(date_value, datetime.min.time())
-        if isinstance(date_value, str):
-            try:
-                return datetime.fromisoformat(date_value)
-            except ValueError:
-                raise ValueError(f"Invalid date string format: {date_value}")
-        raise TypeError(f"Unsupported date type: {type(date_value)}")
+    cursor.execute(query)
+    rows = cursor.fetchall()
+    wait_times: List[models.WaitDatabaseLine] = []
+    item_costs = get_item_costs()
+    for row in rows:
+        wait_time_line = models.WaitDatabaseLine(
+            site= '90 Prosperity' if row.SiteName.startswith('11') or row.SiteName.startswith('17') else row.SiteName,
+            item_code=row.ItemCode,
+            customer_code=row.CustomerCode,
+            wait_time_days=(parse_date(row.ProcessedDate) -
+                            parse_date(row.DateRequired)).days,
+            qty_eaches_sent=int(row.QtyEachDespatched * item_costs[row.ItemCode] if row.ItemCode in item_costs else 0),
+            date_required=row.DateRequired,
+            date_despatched=row.ProcessedDate,
+            date_str=to_iso8601_date(
+                row.ProcessedDate)
+        )
+        wait_times.append(wait_time_line)
+    print('done')
+    print('done')
+    print('done')
+    return wait_times
 
-    @time_limited_cache(max_age_seconds=CACHE_SECONDS)
-    def to_iso8601_date(input_value):
-        """
-        Convert input to ISO 8601 date string.
-        
-        Parameters:
-        input_value (any): The input value to be converted. Can be a datetime, string, or other type.
-        
-        Returns:
-        str: ISO 8601 formatted date string.
-        
-        Raises:
-        ValueError: If the input cannot be converted to a date.
-        """
-        if isinstance(input_value, datetime):
-            return input_value.date().isoformat()
-        elif isinstance(input_value, date):
-            return input_value.isoformat()
-        elif isinstance(input_value, str):
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
+def parse_date(date_value: Union[str, datetime, date, None]) -> datetime:
+    if date_value is None:
+        raise ValueError("None is not a valid date value")
+    if isinstance(date_value, datetime):
+        return date_value
+    if isinstance(date_value, date):
+        return datetime.combine(date_value, datetime.min.time())
+    if isinstance(date_value, str):
+        try:
+            return datetime.fromisoformat(date_value)
+        except ValueError:
+            raise ValueError(f"Invalid date string format: {date_value}")
+    raise TypeError(f"Unsupported date type: {type(date_value)}")
+
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
+def to_iso8601_date(input_value):
+    """
+    Convert input to ISO 8601 date string.
+    
+    Parameters:
+    input_value (any): The input value to be converted. Can be a datetime, string, or other type.
+    
+    Returns:
+    str: ISO 8601 formatted date string.
+    
+    Raises:
+    ValueError: If the input cannot be converted to a date.
+    """
+    if isinstance(input_value, datetime):
+        return input_value.date().isoformat()
+    elif isinstance(input_value, date):
+        return input_value.isoformat()
+    elif isinstance(input_value, str):
+        try:
+            # Try parsing the string to a date
+            parsed_date = datetime.fromisoformat(input_value).date()
+            return parsed_date.isoformat()
+        except ValueError:
+            # Try different formats if ISO format fails
             try:
-                # Try parsing the string to a date
-                parsed_date = datetime.fromisoformat(input_value).date()
+                parsed_date = datetime.strptime(input_value, "%Y-%m-%d").date()
                 return parsed_date.isoformat()
             except ValueError:
-                # Try different formats if ISO format fails
                 try:
-                    parsed_date = datetime.strptime(input_value, "%Y-%m-%d").date()
+                    parsed_date = datetime.strptime(
+                        input_value, "%d/%m/%Y").date()
                     return parsed_date.isoformat()
                 except ValueError:
-                    try:
-                        parsed_date = datetime.strptime(
-                            input_value, "%d/%m/%Y").date()
-                        return parsed_date.isoformat()
-                    except ValueError:
-                        raise ValueError(
-                            f"String {input_value} is not a valid date format")
-        else:
-            raise ValueError(f"Cannot convert type",
-                            f"{type(input_value)} to ISO 8601 date string")
+                    raise ValueError(
+                        f"String {input_value} is not a valid date format")
+    else:
+        raise ValueError(f"Cannot convert type",
+                        f"{type(input_value)} to ISO 8601 date string")

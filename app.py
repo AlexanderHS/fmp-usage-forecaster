@@ -8,7 +8,7 @@ import logging
 import e2_queries
 import predictions
 import models
-import wait_days
+from wait_days import get_smooth_wait_dates, get_wait_days_with_missing
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -46,30 +46,16 @@ def wait_times(item_code: str = None):
     show_waits = request.args.get(
         'show_waits', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=None, type=int)
-    raw_data = e2_queries.WaitTimes.get_raw_order_data()
-    raw_data: List[models.WaitDatabaseLine] = [x for x in raw_data if x.item_code == item_code] if item_code else raw_data
-    raw_data: List[models.WaitDatabaseLine] = [
-        x for x in raw_data if x.site.startswith(site_filter)] if site_filter else raw_data
-    raw_data: List[models.WaitDatabaseLine] = [
-        x for x in raw_data if x.customer_code == customer_code] if customer_code else raw_data
-    wait_dates = wait_days.get_wait_dates(raw_data)
-    wait_dates = sorted(wait_dates, key=lambda x: x.date)
-    
-    # insert missing days
-    if wait_dates:
-        start_date = wait_dates[0].date
-        end_date = wait_dates[-1].date
-        all_dates = predictions.generate_date_range(start_date, end_date)
-        all_dates = [x for x in all_dates if x not in [y.date for y in wait_dates]]
-        for date in all_dates:
-            wait_dates.append(models.WaitDate(date=date, waits=[]))
-        wait_dates = sorted(wait_dates, key=lambda x: x.date)
     
     if smoothing:
-        wait_dates = wait_days.smooth_wait_dates(wait_dates, smoothing)
+        wait_dates = get_smooth_wait_dates(
+            item_code, site_filter, customer_code, smoothing)
+    else:
+        wait_dates = get_wait_days_with_missing(item_code, site_filter, customer_code)
+
     if show_waits:
         return {
-        'wait_times': raw_data,
+        #'wait_times': raw_data,
         'wait_dates': [{
             'date': x.date,
             'waits': [{
