@@ -46,16 +46,17 @@ def wait_times(item_code: str = None):
     show_waits = request.args.get(
         'show_waits', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=None, type=int)
-    
+    mode = request.args.get('mode', default='mean', type=str)
+    assert mode in ['mean', 'median', 'max', 'min', 'mode']
     if smoothing:
         wait_dates = get_smooth_wait_dates(
-            item_code, site_filter, customer_code, smoothing)
+            item_code, site_filter, customer_code, smoothing, mode)
     else:
-        wait_dates = get_wait_days_with_missing(item_code, site_filter, customer_code)
-
+        wait_dates = get_wait_days_with_missing(item_code, site_filter, customer_code, mode)
     if show_waits:
+        raw_data = e2_queries.get_raw_wait_data()
         return {
-        #'wait_times': raw_data,
+        'wait_times': raw_data,
         'wait_dates': [{
             'date': x.date,
             'waits': [{

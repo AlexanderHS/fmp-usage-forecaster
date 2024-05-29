@@ -182,9 +182,6 @@ AND cdl.ProcessedDate > DATEADD(year, -7, GETDATE())
                 row.ProcessedDate)
         )
         wait_times.append(wait_time_line)
-    print('done')
-    print('done')
-    print('done')
     return wait_times
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)

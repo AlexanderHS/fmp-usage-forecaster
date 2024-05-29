@@ -40,6 +40,7 @@ class WaitDate:
     waits: List[Wait]
     qty: Optional[int] = None
     wait_days: Optional[float] = None
+    mode: str = 'mean'
     
     def total_qty(self):
         return sum([wait.qty for wait in self.waits])
@@ -52,6 +53,44 @@ class WaitDate:
             total += wait.qty * wait.wait_time_days
         return total / self.total_qty()
     
+    def wait_median(self):
+        if self.total_qty() == 0:
+            return 0
+        waits = sorted([wait.wait_time_days for wait in self.waits])
+        if len(waits) % 2 == 1:
+            return waits[len(waits) // 2]
+        return (waits[len(waits) // 2] + waits[len(waits) // 2 - 1]) / 2
+    
+    def wait_max(self):
+        if self.total_qty() == 0:
+            return 0
+        return max([wait.wait_time_days for wait in self.waits])
+    
+    def wait_min(self):
+        if self.total_qty() == 0:
+            return 0
+        return min([wait.wait_time_days for wait in self.waits])
+    
+    def wait_mode(self):
+        if self.total_qty() == 0:
+            return 0
+        counts = {}
+        for wait in self.waits:
+            if wait.wait_time_days not in counts:
+                counts[wait.wait_time_days] = 0
+            counts[wait.wait_time_days] += wait.qty
+        return max(counts, key=counts.get)
+       
+    
     def __post_init__(self):
         self.qty = self.total_qty()
-        self.wait_days = self.wait_weighted_avg()
+        if self.mode == 'mean':
+            self.wait_days = self.wait_weighted_avg()
+        if self.mode == 'median':
+            self.wait_days = self.wait_median()
+        if self.mode == 'max':
+            self.wait_days = self.wait_max()
+        if self.mode == 'min':
+            self.wait_days = self.wait_min()
+        if self.mode == 'mode':
+            self.wait_days = self.wait_mode()
