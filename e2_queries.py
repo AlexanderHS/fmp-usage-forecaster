@@ -149,7 +149,8 @@ i.ItemCode,
 c.CustomerCode, 
 cdl.QtyDespatched * ip.ConversionUnits AS QtyEachDespatched, 
 s.SiteName, 
-cast(sol.DateRequired as date) as DateRequired
+cast(sol.DateRequired as date) as DateRequired,
+cd.CustomerDespatchNo
 FROM 
 CustomerDespatchLine AS cdl
 INNER JOIN EntityTypeTransactionStatus AS etts ON etts.EntityTypeTransactionStatusID = cdl.EntityTypeTransactionStatusID
@@ -163,6 +164,7 @@ WHERE
 etts.IsDespatched = 1 
 AND cdl.ProcessedDate IS NOT NULL 
 AND cdl.ProcessedDate > DATEADD(year, -7, GETDATE())
+order by cdl.ProcessedDate desc
 """
     cursor.execute(query)
     rows = cursor.fetchall()
@@ -175,11 +177,16 @@ AND cdl.ProcessedDate > DATEADD(year, -7, GETDATE())
             customer_code=row.CustomerCode,
             wait_time_days=(parse_date(row.ProcessedDate) -
                             parse_date(row.DateRequired)).days,
-            qty_eaches_sent=int(row.QtyEachDespatched * item_costs[row.ItemCode] if row.ItemCode in item_costs else 0),
+            qty_eaches_sent=row.QtyEachDespatched,
             date_required=row.DateRequired,
             date_despatched=row.ProcessedDate,
             date_str=to_iso8601_date(
-                row.ProcessedDate)
+                row.ProcessedDate),
+            cda= row.CustomerDespatchNo,
+            month=parse_date(row.ProcessedDate).month,
+            year=parse_date(row.ProcessedDate).year,
+            day=parse_date(row.ProcessedDate).day,
+            required_str=to_iso8601_date(row.DateRequired)
         )
         wait_times.append(wait_time_line)
     return wait_times

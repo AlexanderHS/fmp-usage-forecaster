@@ -2,6 +2,9 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 
+# modules
+import e2_queries
+
 @dataclass
 class OrderLine:
     code: str
@@ -23,34 +26,41 @@ class WaitDatabaseLine:
     qty_eaches_sent: int
     date_required: datetime
     date_despatched: datetime
+    cda: str
+    est_value: float = None
     date_str: str = None
+    required_str: str = None
+    day: int = None
+    month: int = None
+    year: int = None
     
     # after init
     def __post_init__(self):
         self.wait_time_days = max(0, self.wait_time_days)
+        self.est_value = self.qty_eaches_sent * e2_queries.get_item_costs().get(self.item_code, 0)
 
 @dataclass
 class Wait:
-    qty: int
+    est_value: float
     wait_time_days: int
     
 @dataclass
 class WaitDate:
     date: str
     waits: List[Wait]
-    qty: Optional[int] = None
+    est_value: Optional[int] = None
     wait_days: Optional[float] = None
     mode: str = 'mean'
     
     def total_qty(self):
-        return sum([wait.qty for wait in self.waits])
+        return sum([wait.est_value for wait in self.waits])
     
     def wait_weighted_avg(self):
         if self.total_qty() == 0:
             return 0
         total = 0
         for wait in self.waits:
-            total += wait.qty * wait.wait_time_days
+            total += wait.est_value * wait.wait_time_days
         return total / self.total_qty()
     
     def wait_median(self):
@@ -78,12 +88,12 @@ class WaitDate:
         for wait in self.waits:
             if wait.wait_time_days not in counts:
                 counts[wait.wait_time_days] = 0
-            counts[wait.wait_time_days] += wait.qty
+            counts[wait.wait_time_days] += wait.est_value
         return max(counts, key=counts.get)
        
     
     def __post_init__(self):
-        self.qty = self.total_qty()
+        self.est_value = self.total_qty()
         if self.mode == 'mean':
             self.wait_days = self.wait_weighted_avg()
         if self.mode == 'median':

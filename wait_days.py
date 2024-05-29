@@ -13,7 +13,7 @@ def get_wait_dates(lines: Set[models.WaitDatabaseLine], mode: str = 'mean') -> L
     for line in lines:
         if line.date_str not in dates:
             dates[line.date_str] = []
-        dates[line.date_str].append(models.Wait(line.qty_eaches_sent, line.wait_time_days))
+        dates[line.date_str].append(models.Wait(line.est_value, line.wait_time_days))
     wait_dates = []
     for date_str, waits in dates.items():
         wait_dates.append(models.WaitDate(

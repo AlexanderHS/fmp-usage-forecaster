@@ -8,7 +8,7 @@ import logging
 import e2_queries
 import predictions
 import models
-from wait_days import get_smooth_wait_dates, get_wait_days_with_missing
+from wait_days import get_smooth_wait_dates, get_wait_days_with_missing, get_filtered_data
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -47,6 +47,15 @@ def wait_times(item_code: str = None):
         'show_waits', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=None, type=int)
     mode = request.args.get('mode', default='mean', type=str)
+    lines_only = request.args.get('lines_only', default=False, type=to_bool)
+    limit = request.args.get('limit', default=100, type=int)
+    if lines_only:
+        raw_data = get_filtered_data(
+            item_code=item_code,
+            customer_code=customer_code,
+            site_filter=site_filter
+        )
+        return {'lines': raw_data[:limit]}
     assert mode in ['mean', 'median', 'max', 'min', 'mode']
     if smoothing:
         wait_dates = get_smooth_wait_dates(
