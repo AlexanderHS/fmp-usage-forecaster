@@ -150,7 +150,8 @@ c.CustomerCode,
 cdl.QtyDespatched * ip.ConversionUnits AS QtyEachDespatched, 
 s.SiteName, 
 cast(sol.DateRequired as date) as DateRequired,
-cd.CustomerDespatchNo
+cd.CustomerDespatchNo,
+st.SalesTerritoryName
 FROM 
 CustomerDespatchLine AS cdl
 INNER JOIN EntityTypeTransactionStatus AS etts ON etts.EntityTypeTransactionStatusID = cdl.EntityTypeTransactionStatusID
@@ -160,11 +161,12 @@ INNER JOIN CustomerDespatch AS cd ON cd.CustomerDespatchID = cdl.CustomerDespatc
 INNER JOIN Customer AS c ON cd.CustomerID = c.CustomerID
 INNER JOIN Site AS s ON s.SiteID = cd.SiteID
 LEFT OUTER JOIN SalesOrderLine AS sol ON sol.SalesOrderLineID = cdl.SalesOrderLineID
+LEFT OUTER JOIN CustomerInvoiceLine as cil on cil.CustomerDespatchLineID = cdl.CustomerDespatchLineID
+LEFT OUTER JOIN SalesTerritory as st on st.SalesTerritoryID = cil.SalesTerritoryID
 WHERE 
 etts.IsDespatched = 1 
 AND cdl.ProcessedDate IS NOT NULL 
 AND cdl.ProcessedDate > DATEADD(year, -7, GETDATE())
-order by cdl.ProcessedDate desc
 """
     cursor.execute(query)
     rows = cursor.fetchall()
@@ -186,7 +188,8 @@ order by cdl.ProcessedDate desc
             month=parse_date(row.ProcessedDate).month,
             year=parse_date(row.ProcessedDate).year,
             day=parse_date(row.ProcessedDate).day,
-            required_str=to_iso8601_date(row.DateRequired)
+            required_str=to_iso8601_date(row.DateRequired),
+            sales_territory=row.SalesTerritoryName
         )
         wait_times.append(wait_time_line)
     return wait_times

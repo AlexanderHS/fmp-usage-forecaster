@@ -43,6 +43,10 @@ def wait_times(item_code: str = None):
         'site_filter', default=None, type=str)
     if site_filter == '-NONE-':
         site_filter = None
+    sales_territory = request.args.get(
+        'sales_territory', default=None, type=str)
+    if sales_territory == '-NONE-':
+        sales_territory = None
     show_waits = request.args.get(
         'show_waits', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=None, type=int)
@@ -53,15 +57,16 @@ def wait_times(item_code: str = None):
         raw_data = get_filtered_data(
             item_code=item_code,
             customer_code=customer_code,
-            site_filter=site_filter
+            site_filter=site_filter,
+            sales_territory=sales_territory
         )
         return {'lines': raw_data[:limit]}
     assert mode in ['mean', 'median', 'max', 'min', 'mode']
     if smoothing:
         wait_dates = get_smooth_wait_dates(
-            item_code, site_filter, customer_code, smoothing, mode)
+            item_code, site_filter, customer_code, smoothing, mode, sales_territory)
     else:
-        wait_dates = get_wait_days_with_missing(item_code, site_filter, customer_code, mode)
+        wait_dates = get_wait_days_with_missing(item_code, site_filter, customer_code, mode, sales_territory)
     if show_waits:
         raw_data = e2_queries.get_raw_wait_data()
         return {

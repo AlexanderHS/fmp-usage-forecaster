@@ -41,7 +41,7 @@ def smooth_wait_dates(wait_dates: List[models.WaitDate], smoothing: int, mode: s
     return smoothed_dates
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
-def get_filtered_data(item_code: str = None, site_filter: str = None, customer_code: str = None) -> List[models.WaitDatabaseLine]:
+def get_filtered_data(item_code: str = None, site_filter: str = None, customer_code: str = None, sales_territory: str = None) -> List[models.WaitDatabaseLine]:
     raw_data = e2_queries.get_raw_wait_data()
     raw_data: List[models.WaitDatabaseLine] = [
         x for x in raw_data if x.item_code == item_code] if item_code else raw_data
@@ -49,21 +49,23 @@ def get_filtered_data(item_code: str = None, site_filter: str = None, customer_c
         x for x in raw_data if x.site.startswith(site_filter)] if site_filter else raw_data
     raw_data: List[models.WaitDatabaseLine] = [
         x for x in raw_data if x.customer_code == customer_code] if customer_code else raw_data
+    raw_data: List[models.WaitDatabaseLine] = [
+        x for x in raw_data if x.sales_territory == sales_territory] if sales_territory else raw_data
     return raw_data
 
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
-def get_sorted_wait_dates(item_code: str = None, site_filter: str = None, customer_code: str = None, mode: str = 'mean') -> List[models.WaitDate]:
+def get_sorted_wait_dates(item_code: str = None, site_filter: str = None, customer_code: str = None, mode: str = 'mean', sales_territory: str = None) -> List[models.WaitDate]:
     raw_data = get_filtered_data(
-        item_code=item_code, site_filter=site_filter, customer_code=customer_code)
+        item_code=item_code, site_filter=site_filter, customer_code=customer_code, sales_territory=sales_territory)
     wait_dates = get_wait_dates(raw_data, mode)
     wait_dates = sorted(wait_dates, key=lambda x: x.date)
     return wait_dates
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
-def get_wait_days_with_missing(item_code: str = None, site_filter: str = None, customer_code: str = None, mode: str = 'mean') -> List[models.WaitDate]:
+def get_wait_days_with_missing(item_code: str = None, site_filter: str = None, customer_code: str = None, mode: str = 'mean', sales_territory: str = None) -> List[models.WaitDate]:
     wait_dates = get_sorted_wait_dates(
-        item_code, site_filter, customer_code, mode)
+        item_code, site_filter, customer_code, mode, sales_territory)
 
     # insert missing days
     if wait_dates:
@@ -77,8 +79,8 @@ def get_wait_days_with_missing(item_code: str = None, site_filter: str = None, c
     return wait_dates
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
-def get_smooth_wait_dates(item_code: str = None, site_filter: str = None, customer_code: str = None, smoothing: int = 3, mode: str = 'mean') -> List[models.WaitDate]:
+def get_smooth_wait_dates(item_code: str = None, site_filter: str = None, customer_code: str = None, smoothing: int = 3, mode: str = 'mean', sales_territory: str = None) -> List[models.WaitDate]:
     wait_days = get_wait_days_with_missing(
-        item_code, site_filter, customer_code, mode)
+        item_code, site_filter, customer_code, mode, sales_territory)
     wait_days = smooth_wait_dates(wait_days, smoothing, mode)
     return wait_days
