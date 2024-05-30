@@ -28,6 +28,9 @@ class WaitDatabaseLine:
     date_despatched: datetime
     cda: str
     sales_territory: str
+    item_category: str
+    item_type: str
+    item_category_parent: str
     est_value: float = None
     date_str: str = None
     required_str: str = None

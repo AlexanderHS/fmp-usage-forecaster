@@ -152,6 +152,9 @@ s.SiteName,
 cast(sol.DateRequired as date) as DateRequired,
 cd.CustomerDespatchNo,
 st.SalesTerritoryName
+,cat.EntityClassificationCategoryDisplayName as ItemCategory
+,parent.EntityClassificationCategoryDisplayName as ItemCategoryParent
+,typ.EntityClassificationTypeDisplayName as ItemType
 FROM 
 CustomerDespatchLine AS cdl
 INNER JOIN EntityTypeTransactionStatus AS etts ON etts.EntityTypeTransactionStatusID = cdl.EntityTypeTransactionStatusID
@@ -163,6 +166,10 @@ INNER JOIN Site AS s ON s.SiteID = cd.SiteID
 LEFT OUTER JOIN SalesOrderLine AS sol ON sol.SalesOrderLineID = cdl.SalesOrderLineID
 LEFT OUTER JOIN CustomerInvoiceLine as cil on cil.CustomerDespatchLineID = cdl.CustomerDespatchLineID
 LEFT OUTER JOIN SalesTerritory as st on st.SalesTerritoryID = cil.SalesTerritoryID
+INNER JOIN ItemDivision as id on id.ItemID = i.ItemID and id.DivisionID = 1
+INNER JOIN EntityClassificationCategory as cat on id.EntityClassificationCategoryID = cat.EntityClassificationCategoryID
+INNER JOIN EntityClassificationType as typ on typ.EntityClassificationTypeID = id.EntityClassificationTypeID
+INNER JOIN EntityClassificationCategory as parent on parent.EntityClassificationCategoryID = cat.ParentEntityClassificationCategoryID
 WHERE 
 etts.IsDespatched = 1 
 AND cdl.ProcessedDate IS NOT NULL 
@@ -173,7 +180,6 @@ cdl.ProcessedDate desc
     cursor.execute(query)
     rows = cursor.fetchall()
     wait_times: List[models.WaitDatabaseLine] = []
-    item_costs = get_item_costs()
     for row in rows:
         wait_time_line = models.WaitDatabaseLine(
             site= '90 Prosperity' if row.SiteName.startswith('11') or row.SiteName.startswith('17') else row.SiteName,
@@ -191,7 +197,10 @@ cdl.ProcessedDate desc
             year=parse_date(row.ProcessedDate).year,
             day=parse_date(row.ProcessedDate).day,
             required_str=to_iso8601_date(row.DateRequired),
-            sales_territory=row.SalesTerritoryName
+            sales_territory=row.SalesTerritoryName,
+            item_category=row.ItemCategory,
+            item_type=row.ItemType,
+            item_category_parent=row.ItemCategoryParent
         )
         wait_times.append(wait_time_line)
     return wait_times
