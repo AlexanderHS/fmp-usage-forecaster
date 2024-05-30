@@ -67,7 +67,10 @@ def wait_times(item_code: str = None):
             item_code=item_code,
             customer_code=customer_code,
             site_filter=site_filter,
-            sales_territory=sales_territory
+            sales_territory=sales_territory,
+            category=category,
+            item_type=item_type,
+            parent=parent
         )
         return {'lines': raw_data[:limit]}
     assert mode in ['mean', 'median', 'max', 'min', 'mode']
