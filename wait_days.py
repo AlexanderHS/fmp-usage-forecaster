@@ -78,7 +78,7 @@ def get_sorted_wait_dates(item_code: str = None, site_filter: str = None, custom
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_wait_days_with_missing(item_code: str = None, site_filter: str = None, customer_code: str = None, mode: str = 'mean', sales_territory: str = None, category: str = None, item_type: str = None, parent: str = None) -> List[models.WaitDate]:
     wait_dates = get_sorted_wait_dates(
-        item_code, site_filter, customer_code, mode, sales_territory)
+        item_code, site_filter, customer_code, mode, sales_territory, category, item_type, parent)
 
     # insert missing days
     if wait_dates:
