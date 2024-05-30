@@ -53,6 +53,11 @@ class WaitDate:
     window_size: Optional[int] = None
     mode: str = 'mean'
     
+    def total_est_value_no_normalisation_for_window(self):
+        if not self.waits:
+            return 0
+        return sum([wait.est_value for wait in self.waits])
+    
     def total_est_value(self):
         if not self.waits:
             return 0
@@ -66,7 +71,7 @@ class WaitDate:
         total = 0
         for wait in self.waits:
             total += wait.est_value * wait.wait_time_days
-        return total / self.total_est_value()
+        return total / self.total_est_value_no_normalisation_for_window()
     
     def wait_median(self):
         if self.total_est_value() == 0:
