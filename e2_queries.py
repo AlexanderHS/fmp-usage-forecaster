@@ -167,6 +167,8 @@ WHERE
 etts.IsDespatched = 1 
 AND cdl.ProcessedDate IS NOT NULL 
 AND cdl.ProcessedDate > DATEADD(year, -7, GETDATE())
+ORDER BY
+cdl.ProcessedDate desc
 """
     cursor.execute(query)
     rows = cursor.fetchall()
