@@ -48,23 +48,28 @@ class Wait:
 class WaitDate:
     date: str
     waits: List[Wait]
-    est_value: Optional[int] = None
+    est_value: Optional[float] = None
     wait_days: Optional[float] = None
+    window_size: Optional[int] = None
     mode: str = 'mean'
     
-    def total_qty(self):
+    def total_est_value(self):
+        if not self.waits:
+            return 0
+        if self.window_size and self.window_size > 0:
+            return sum([wait.est_value for wait in self.waits]) / self.window_size
         return sum([wait.est_value for wait in self.waits])
     
     def wait_weighted_avg(self):
-        if self.total_qty() == 0:
+        if self.total_est_value() == 0:
             return 0
         total = 0
         for wait in self.waits:
             total += wait.est_value * wait.wait_time_days
-        return total / self.total_qty()
+        return total / self.total_est_value()
     
     def wait_median(self):
-        if self.total_qty() == 0:
+        if self.total_est_value() == 0:
             return 0
         waits = sorted([wait.wait_time_days for wait in self.waits])
         if len(waits) % 2 == 1:
@@ -72,17 +77,17 @@ class WaitDate:
         return (waits[len(waits) // 2] + waits[len(waits) // 2 - 1]) / 2
     
     def wait_max(self):
-        if self.total_qty() == 0:
+        if self.total_est_value() == 0:
             return 0
         return max([wait.wait_time_days for wait in self.waits])
     
     def wait_min(self):
-        if self.total_qty() == 0:
+        if self.total_est_value() == 0:
             return 0
         return min([wait.wait_time_days for wait in self.waits])
     
     def wait_mode(self):
-        if self.total_qty() == 0:
+        if self.total_est_value() == 0:
             return 0
         counts = {}
         for wait in self.waits:
@@ -93,7 +98,7 @@ class WaitDate:
        
     
     def __post_init__(self):
-        self.est_value = self.total_qty()
+        self.est_value = self.total_est_value()
         if self.mode == 'mean':
             self.wait_days = self.wait_weighted_avg()
         if self.mode == 'median':

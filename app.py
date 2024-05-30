@@ -78,7 +78,7 @@ def wait_times(item_code: str = None):
         #'wait_times': raw_data,
         'wait_dates': [{
             'date': x.date,
-            'qty': x.total_qty(),
+            'qty': x.total_est_value(),
             'wait_days': x.wait_days
             } for x in wait_dates],
         }

@@ -35,7 +35,9 @@ def smooth_wait_dates(wait_dates: List[models.WaitDate], smoothing: int, mode: s
         smoothed_dates.append(models.WaitDate(
             date=wait_dates[i].date,
             waits=waits,
-            mode=mode))
+            mode=mode,
+            window_size=end_index - start_index
+            ))
     return smoothed_dates
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
