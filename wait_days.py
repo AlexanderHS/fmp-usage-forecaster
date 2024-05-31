@@ -78,8 +78,9 @@ def get_sorted_wait_dates(item_code: str = None, site_filter: str = None, custom
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_scatter_plot_data(item_code: str, customer_code: str, site_filter: str, sales_territory: str, category: str, item_type: str, parent: str, type: str, mode: str, limit: int) -> List[models.ScatterPoint]:
-    assert type in ['customer_code', 'item_code',
-                    'site', 'item_category', 'item_type', 'sales_territory', 'item,_category_parent']
+    if type not in ['customer_code', 'item_code',
+                    'site', 'item_category', 'item_type', 'sales_territory', 'item_category_parent']:
+        type = 'customer_code'
     raw_data = get_filtered_data(
         item_code=item_code,
         customer_code=customer_code,
