@@ -118,3 +118,10 @@ class WaitDate:
             self.wait_days = self.wait_min()
         if self.mode == 'mode':
             self.wait_days = self.wait_mode()
+
+@dataclass
+class ScatterPoint:
+    name: str
+    value: float
+    wait: int
+    

@@ -8,7 +8,7 @@ import logging
 import e2_queries
 import predictions
 import models
-from wait_days import get_smooth_wait_dates, get_wait_days_with_missing, get_filtered_data
+from wait_days import get_smooth_wait_dates, get_wait_days_with_missing, get_filtered_data, get_scatter_plot_data
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -59,7 +59,6 @@ def wait_times(item_code: str = None):
     show_waits = request.args.get(
         'show_waits', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=None, type=int)
-    mode = request.args.get('mode', default='mean', type=str)
     lines_only = request.args.get('lines_only', default=False, type=to_bool)
     limit = request.args.get('limit', default=100, type=int)
     if lines_only:
@@ -73,7 +72,23 @@ def wait_times(item_code: str = None):
             parent=parent
         )
         return {'lines': raw_data[:limit]}
+    mode = request.args.get('mode', default='mean', type=str)
     assert mode in ['mean', 'median', 'max', 'min', 'mode']
+    scatter_plot_group = request.args.get(
+        'scatter_plot_group', default=None, type=str)
+    if scatter_plot_group:
+        return get_scatter_plot_data(
+            item_code=item_code,
+            customer_code=customer_code,
+            site_filter=site_filter,
+            sales_territory=sales_territory,
+            category=category,
+            item_type=item_type,
+            parent=parent,
+            type=scatter_plot_group,
+            mode=mode,
+            limit=limit
+        )
     if smoothing:
         wait_dates = get_smooth_wait_dates(
             item_code, site_filter, customer_code, smoothing, mode, sales_territory, category, item_type, parent)
