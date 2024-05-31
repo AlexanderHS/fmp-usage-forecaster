@@ -1,5 +1,6 @@
 
 
+import datetime
 from typing import List, Set
 
 # modules
@@ -77,7 +78,7 @@ def get_sorted_wait_dates(item_code: str = None, site_filter: str = None, custom
 
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
-def get_scatter_plot_data(item_code: str, customer_code: str, site_filter: str, sales_territory: str, category: str, item_type: str, parent: str, type: str, mode: str, limit: int) -> List[models.ScatterPoint]:
+def get_scatter_plot_data(item_code: str, customer_code: str, site_filter: str, sales_territory: str, category: str, item_type: str, parent: str, type: str, mode: str) -> List[models.ScatterPoint]:
     if type not in ['customer_code', 'item_code',
                     'site', 'item_category', 'item_type', 'sales_territory', 'item_category_parent']:
         type = 'customer_code'
@@ -90,7 +91,8 @@ def get_scatter_plot_data(item_code: str, customer_code: str, site_filter: str, 
         item_type=item_type,
         parent=parent
     )
-    raw_data = raw_data[:limit]
+    one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+    raw_data = [x for x in raw_data if x.date_required > one_year_ago.date()]
     groups = dict()
     for line in raw_data:
         key = getattr(line, type)

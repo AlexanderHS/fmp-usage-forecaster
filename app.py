@@ -1,3 +1,4 @@
+import datetime
 import os
 from typing import List
 from flask import Flask, request
@@ -60,7 +61,7 @@ def wait_times(item_code: str = None):
         'show_waits', default=False, type=to_bool)
     smoothing = request.args.get('smoothing', default=None, type=int)
     lines_only = request.args.get('lines_only', default=False, type=to_bool)
-    limit = request.args.get('limit', default=100, type=int)
+    limit = request.args.get('limit', default=None, type=int)
     if lines_only:
         raw_data = get_filtered_data(
             item_code=item_code,
@@ -71,6 +72,10 @@ def wait_times(item_code: str = None):
             item_type=item_type,
             parent=parent
         )
+        if not limit:
+            one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+            raw_data = [x for x in raw_data if x.date_required > one_year_ago.date()]
+            return {'lines': raw_data}
         return {'lines': raw_data[:limit]}
     mode = request.args.get('mode', default='mean', type=str)
     assert mode in ['mean', 'median', 'max', 'min', 'mode']
@@ -89,7 +94,6 @@ def wait_times(item_code: str = None):
             parent=parent,
             type=scatter_plot_group,
             mode=mode,
-            limit=limit
         )
     if smoothing:
         wait_dates = get_smooth_wait_dates(
