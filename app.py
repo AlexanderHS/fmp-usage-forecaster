@@ -76,7 +76,7 @@ def wait_times(item_code: str = None):
     assert mode in ['mean', 'median', 'max', 'min', 'mode']
     scatter_plot_group = request.args.get(
         'scatter_plot_group', default=None, type=str)
-    if scatter_plot_group:
+    if scatter_plot_group and scatter_plot_group != '-NONE-':
         return get_scatter_plot_data(
             item_code=item_code,
             customer_code=customer_code,
