@@ -172,7 +172,7 @@ INNER JOIN EntityClassificationType as typ on typ.EntityClassificationTypeID = i
 INNER JOIN EntityClassificationCategory as parent on parent.EntityClassificationCategoryID = cat.ParentEntityClassificationCategoryID
 WHERE 
 etts.IsDespatched = 1 
-AND c.sustomerCode != 'FAI101'
+AND c.CustomerCode != 'FAI101'
 AND cdl.QtyDespatched > 0
 AND s.SiteName not like '%SAMPLE%'
 AND cdl.ProcessedDate IS NOT NULL 
