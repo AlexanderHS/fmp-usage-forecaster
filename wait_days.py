@@ -104,7 +104,7 @@ def get_scatter_plot_data(item_code: str, customer_code: str, site_filter: str, 
         est_value = wait_date.total_est_value()
         wait_days = wait_date.wait_days
         results.append(models.ScatterPoint(name=name, value=est_value, wait=wait_days))
-    return {'data': results}
+    return results
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_wait_days_with_missing(item_code: str = None, site_filter: str = None, customer_code: str = None, mode: str = 'mean', sales_territory: str = None, category: str = None, item_type: str = None, parent: str = None) -> List[models.WaitDate]:
