@@ -111,7 +111,8 @@ def get_scatter_plot_data(item_code: str, customer_code: str, site_filter: str, 
         parent=parent
     )
     one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-    raw_data = [x for x in raw_data if x.date_required > one_year_ago.date()]
+    raw_data = [x for x in raw_data if e2_queries.parse_date(x.date_required).date() >
+                one_year_ago.date()]
     groups = dict()
     for line in raw_data:
         key = getattr(line, type)
