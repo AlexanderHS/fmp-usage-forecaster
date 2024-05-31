@@ -9,7 +9,7 @@ import logging
 import e2_queries
 import predictions
 import models
-from wait_days import get_smooth_wait_dates, get_wait_days_with_missing, get_filtered_data, get_scatter_plot_data
+from wait_days import get_smooth_wait_dates, get_wait_days_with_missing, get_scatter_plot_data, get_lines_only
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -63,20 +63,16 @@ def wait_times(item_code: str = None):
     lines_only = request.args.get('lines_only', default=False, type=to_bool)
     limit = request.args.get('limit', default=None, type=int)
     if lines_only:
-        raw_data = get_filtered_data(
+        return get_lines_only(
             item_code=item_code,
             customer_code=customer_code,
             site_filter=site_filter,
             sales_territory=sales_territory,
             category=category,
             item_type=item_type,
-            parent=parent
+            parent=parent,
+            limit=limit
         )
-        if not limit:
-            one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
-            raw_data = [x for x in raw_data if x.date_required > one_year_ago.date()]
-            return {'lines': raw_data}
-        return {'lines': raw_data[:limit]}
     mode = request.args.get('mode', default='mean', type=str)
     assert mode in ['mean', 'median', 'max', 'min', 'mode']
     scatter_plot_group = request.args.get(

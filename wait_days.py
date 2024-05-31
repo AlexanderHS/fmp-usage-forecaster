@@ -78,6 +78,25 @@ def get_sorted_wait_dates(item_code: str = None, site_filter: str = None, custom
 
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
+def get_lines_only(item_code: str = None, site_filter: str = None, customer_code: str = None, sales_territory: str = None, category: str = None, item_type: str = None, parent: str = None, limit: int = None) -> List[models.WaitDatabaseLine]:
+    raw_data = get_filtered_data(
+        item_code=item_code,
+        site_filter=site_filter,
+        customer_code=customer_code,
+        sales_territory=sales_territory,
+        category=category,
+        item_type=item_type,
+        parent=parent
+        )
+    if not limit:
+        one_year_ago = datetime.datetime.now() - datetime.timedelta(days=365)
+        raw_data = [x for x in raw_data if x.date_required >
+                    one_year_ago.date()]
+        print(f'one year contains {len(raw_data)} lines')
+        return {'lines': raw_data}
+    return {'lines': raw_data[:limit]}
+
+@time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_scatter_plot_data(item_code: str, customer_code: str, site_filter: str, sales_territory: str, category: str, item_type: str, parent: str, type: str, mode: str) -> List[models.ScatterPoint]:
     if type not in ['customer_code', 'item_code',
                     'site', 'item_category', 'item_type', 'sales_territory', 'item_category_parent']:
