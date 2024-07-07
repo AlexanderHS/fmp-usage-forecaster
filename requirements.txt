@@ -3,6 +3,6 @@ plotly
 matplotlib
 flask
 pyodbc
-numpy
 joblib
 prophet
+numpy==1.21.0
