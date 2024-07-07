@@ -140,8 +140,6 @@ def get_order(item_code):
         print('Cleared cache')
     days = request.args.get('days', default=30, type=int)
     total_only = request.args.get('total_only', default=False, type=to_bool)
-    neural = request.args.get(
-        'neural', default=False, type=to_bool)
     total_past_only = request.args.get(
         'total_past_only', default=False, type=to_bool)
     past_orders_only = request.args.get(
@@ -168,9 +166,6 @@ def get_order(item_code):
     if not past_orders_only:
         predictions_model = predictions.get_predictions(
             item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
-        if neural:
-            predictions_model = predictions.get_predictions_neural(
-                item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
 
     data = {
         'item_code': item_code,

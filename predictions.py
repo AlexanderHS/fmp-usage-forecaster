@@ -5,7 +5,6 @@ import numpy as np
 from prophet import Prophet
 from typing import List
 import logging
-from neuralprophet import NeuralProphet
 
 # modules
 import e2_queries
@@ -97,53 +96,6 @@ def smooth_predictions(data, smoothing_days):
         smoothed_data.append([dates[i], avg_value])
 
     return smoothed_data
-
-@time_limited_cache(max_age_seconds=CACHE_SECONDS)
-def get_predictions_neural(item_code: str, days: int = 30, site_filter: str = None, site_filter2: str = None, dollars: bool = False) -> List[tuple]:
-    order_history = get_orders(
-        item_code, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
-
-    # Create a dataframe from the order history
-    df = pd.DataFrame({
-        'ds': [order.date for order in order_history],
-        'y': [order.qty for order in order_history]
-    })
-
-    # Make sure the dataset includes all dates in the range, filling missing dates with zero
-    df.set_index('ds', inplace=True)
-    df.index = pd.to_datetime(df.index)
-    start_date = df.index.min()
-    end_date = df.index.max()
-
-    # if none or nat, make it seven years ago from today
-    if pd.isna(start_date):
-       start_date = datetime.datetime.now() - datetime.timedelta(days=7 * 365)
-
-    # if none or nat, make it today
-    if pd.isna(end_date):
-       end_date = datetime.datetime.now()
-
-    idx = pd.date_range(start_date, end_date)
-    df = df.reindex(idx, fill_value=0).reset_index().rename(
-        columns={'index': 'ds'})
-
-    # Initialize the NeuralProphet model
-    model = NeuralProphet()
-
-    # Fit the model with the data
-    model.fit(df, freq='D')
-
-    # Create a dataframe to store future dates for prediction
-    future_dates = model.make_future_dataframe(df, periods=days)
-
-    # Use the model to make predictions
-    forecast = model.predict(future_dates)
-
-    # Extract date and forecasted value, and convert to list of tuples
-    predictions = list(
-        zip(forecast['ds'].dt.strftime('%Y-%m-%d'), forecast['yhat1']))
-
-    return predictions
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_predictions(item_code: str, days: int = 30, site_filter: str = None, site_filter2: str = None, dollars: bool = False) -> List[tuple]:

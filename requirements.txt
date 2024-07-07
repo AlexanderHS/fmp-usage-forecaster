@@ -4,5 +4,4 @@ matplotlib
 flask
 pyodbc
 numpy
-neuralprophet
 joblib
