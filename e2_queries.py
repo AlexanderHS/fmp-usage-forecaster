@@ -112,6 +112,7 @@ WHERE
             site= row.SiteName
             )
         orders.append(order_line)
+    logging.info(f'Qty orders retreived: {len(orders)}')
     return orders
 
 
