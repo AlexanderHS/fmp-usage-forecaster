@@ -5,3 +5,4 @@ flask
 pyodbc
 numpy
 joblib
+prophet
