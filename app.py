@@ -166,6 +166,9 @@ def get_order(item_code):
     if not past_orders_only:
         predictions_model = predictions.get_predictions(
             item_code=item_code, days=days, site_filter=site_filter, site_filter2=site_filter2, dollars=dollars)
+        logging.info(f"predictions_model created: {len(predictions_model)}")
+        
+    
 
     data = {
         'item_code': item_code,
