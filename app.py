@@ -15,6 +15,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
+logging.getLogger('prophet').setLevel(logging.DEBUG)
+logging.getLogger('cmdstanpy').setLevel(logging.DEBUG)
+
 @app.route('/')
 def base_url():
     # handles base case with no item code
