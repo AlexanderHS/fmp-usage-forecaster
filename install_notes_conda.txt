@@ -1,0 +1,7 @@
+If using conda in powershell might do something like this:
+
+
+conda remove --name fmp-usage-forecaster --all -y; `
+conda create --name fmp-usage-forecaster python=3.12 -y; `
+conda activate fmp-usage-forecaster; `
+pip install -r requirements.txt
