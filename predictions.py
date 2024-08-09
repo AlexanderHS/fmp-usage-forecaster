@@ -1,3 +1,5 @@
+import os
+import sys
 from joblib import Parallel, delayed
 import datetime
 import pandas as pd
@@ -15,6 +17,13 @@ from cache import CACHE_SECONDS
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("prophet").setLevel(logging.ERROR)
 logging.getLogger("cmdstanpy").setLevel(logging.ERROR)
+
+
+# Redirect stdout to /dev/null
+sys.stdout = open(os.devnull, "w")
+
+os.environ["CMDSTAN_PRINT_STDOUT"] = "0"
+os.environ["STAN_THREADS"] = "0"
 
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
