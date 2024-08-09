@@ -13,6 +13,8 @@ from cache import time_limited_cache
 from cache import CACHE_SECONDS
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger("prophet").setLevel(logging.ERROR)
+logging.getLogger("cmdstanpy").setLevel(logging.ERROR)
 
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
