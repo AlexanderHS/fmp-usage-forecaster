@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 from prophet import Prophet
 from typing import List
-import logging
 
 # modules
 import e2_queries
@@ -14,13 +13,12 @@ import models
 from cache import time_limited_cache
 from cache import CACHE_SECONDS
 
-logging.basicConfig(level=logging.INFO)
+import logging
+
+logging.basicConfig(level=logging.ERROR)
 logging.getLogger("prophet").setLevel(logging.ERROR)
 logging.getLogger("cmdstanpy").setLevel(logging.ERROR)
 
-
-# Redirect stdout to /dev/null
-sys.stdout = open(os.devnull, "w")
 
 os.environ["CMDSTAN_PRINT_STDOUT"] = "0"
 os.environ["STAN_THREADS"] = "0"
