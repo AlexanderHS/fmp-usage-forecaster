@@ -52,12 +52,13 @@ WHERE
     rows = cursor.fetchall()
     for row in rows:
         return row.TotalValue
-        
+    return Decimal(0.0)
+
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_raw_order_data(dollars: bool = False) -> List[models.OrderLine]:
     logging.info("Connecting to database")
-    logging.info(f'connect string: {configs.read_connect_string}')
+    logging.info(f"connect string: {configs.read_connect_string}")
     cnxn = pyodbc.connect(configs.read_connect_string)
     logging.info("Connected to database")
     cursor = cnxn.cursor()
@@ -103,16 +104,21 @@ WHERE
         item_costs: Dict[str, Decimal] = get_item_costs()
     for row in rows:
         if dollars == False or row.ItemCode in item_costs:
-            qty_or_value = int(int(row.QtyOrdered * row.ConversionUnits) * item_costs[row.ItemCode]) if dollars else int(
-                row.QtyOrdered * row.ConversionUnits)
-        order_line = models.OrderLine(
-            code= row.ItemCode,
-            base_qty=qty_or_value,
-            date= row.DateRequired,
-            site= row.SiteName
+            qty_or_value = (
+                int(
+                    int(row.QtyOrdered * row.ConversionUnits) * item_costs[row.ItemCode]
+                )
+                if dollars
+                else int(row.QtyOrdered * row.ConversionUnits)
             )
+        order_line = models.OrderLine(
+            code=row.ItemCode,
+            base_qty=qty_or_value,
+            date=row.DateRequired,
+            site=row.SiteName,
+        )
         orders.append(order_line)
-    logging.info(f'Qty orders retreived: {len(orders)}')
+    logging.info(f"Qty orders retreived: {len(orders)}")
     return orders
 
 
@@ -129,11 +135,16 @@ FROM [ManagementPortal].[dbo].[Item] AS [t0]
     item_costs = {}
     for row in rows:
         if row.AvgPriceAUDEach or row.ListPriceAUDEach:
-            item_costs[row.Code] = Decimal(row.AvgPriceAUDEach) if row.AvgPriceAUDEach else Decimal(row.ListPriceAUDEach)
+            item_costs[row.Code] = (
+                Decimal(row.AvgPriceAUDEach)
+                if row.AvgPriceAUDEach
+                else Decimal(row.ListPriceAUDEach)
+            )
     return item_costs
 
 
 # WAIT TIMES
+
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def get_raw_wait_data(years: int = 7) -> List[models.WaitDatabaseLine]:
@@ -186,17 +197,21 @@ cdl.ProcessedDate desc
     wait_times: List[models.WaitDatabaseLine] = []
     for row in rows:
         wait_time_line = models.WaitDatabaseLine(
-            site= '90 Prosperity' if row.SiteName.startswith('11') or row.SiteName.startswith('17') else row.SiteName,
+            site=(
+                "90 Prosperity"
+                if row.SiteName.startswith("11") or row.SiteName.startswith("17")
+                else row.SiteName
+            ),
             item_code=row.ItemCode,
             customer_code=row.CustomerCode,
-            wait_time_days=(parse_date(row.ProcessedDate) -
-                            parse_date(row.DateRequired)).days,
+            wait_time_days=(
+                parse_date(row.ProcessedDate) - parse_date(row.DateRequired)
+            ).days,
             qty_eaches_sent=row.QtyEachDespatched,
             date_required=row.DateRequired,
             date_despatched=row.ProcessedDate,
-            date_str=to_iso8601_date(
-                row.ProcessedDate),
-            cda= row.CustomerDespatchNo,
+            date_str=to_iso8601_date(row.ProcessedDate),
+            cda=row.CustomerDespatchNo,
             month=parse_date(row.ProcessedDate).month,
             year=parse_date(row.ProcessedDate).year,
             day=parse_date(row.ProcessedDate).day,
@@ -204,10 +219,11 @@ cdl.ProcessedDate desc
             sales_territory=row.SalesTerritoryName,
             item_category=row.ItemCategory,
             item_type=row.ItemType,
-            item_category_parent=row.ItemCategoryParent
+            item_category_parent=row.ItemCategoryParent,
         )
         wait_times.append(wait_time_line)
     return wait_times
+
 
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def parse_date(date_value: Union[str, datetime, date, None]) -> datetime:
@@ -224,17 +240,18 @@ def parse_date(date_value: Union[str, datetime, date, None]) -> datetime:
             raise ValueError(f"Invalid date string format: {date_value}")
     raise TypeError(f"Unsupported date type: {type(date_value)}")
 
+
 @time_limited_cache(max_age_seconds=CACHE_SECONDS)
 def to_iso8601_date(input_value):
     """
     Convert input to ISO 8601 date string.
-    
+
     Parameters:
     input_value (any): The input value to be converted. Can be a datetime, string, or other type.
-    
+
     Returns:
     str: ISO 8601 formatted date string.
-    
+
     Raises:
     ValueError: If the input cannot be converted to a date.
     """
@@ -254,12 +271,11 @@ def to_iso8601_date(input_value):
                 return parsed_date.isoformat()
             except ValueError:
                 try:
-                    parsed_date = datetime.strptime(
-                        input_value, "%d/%m/%Y").date()
+                    parsed_date = datetime.strptime(input_value, "%d/%m/%Y").date()
                     return parsed_date.isoformat()
                 except ValueError:
-                    raise ValueError(
-                        f"String {input_value} is not a valid date format")
+                    raise ValueError(f"String {input_value} is not a valid date format")
     else:
-        raise ValueError(f"Cannot convert type",
-                        f"{type(input_value)} to ISO 8601 date string")
+        raise ValueError(
+            f"Cannot convert type", f"{type(input_value)} to ISO 8601 date string"
+        )
