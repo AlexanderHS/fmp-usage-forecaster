@@ -1,3 +1,5 @@
+.env
+
 *.yaml
 lightning_logs/
 
