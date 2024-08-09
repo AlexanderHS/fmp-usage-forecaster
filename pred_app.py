@@ -16,7 +16,7 @@ from wait_days import (
     get_lines_only,
 )
 
-logging.basicConfig(level=logging.info)
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
