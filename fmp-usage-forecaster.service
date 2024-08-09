@@ -7,7 +7,7 @@ After=network-online.target
 [Service]
 User=ubuntu
 Type=simple
-ExecStart=/home/ubuntu/fmp-usage-forecaster/start.sh
+ExecStart=/home/ubuntu/fmp-usage-forecaster/start.sh --log-level=none
 Restart=always
 RestartSec=30
 StartLimitInterval=350
