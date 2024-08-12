@@ -155,7 +155,11 @@ def get_order(item_code):
     dollars = request.args.get("dollars", default=False, type=to_bool)
     if orders_placed_today:
         result = e2_queries.get_orders_placed_today(dollars)
-        return {"orders_placed_today": int(result)}
+        return (
+            {"orders_placed_today": int(result)}
+            if result
+            else {"orders_placed_today": 0}
+        )
     if reload_cache:
         predictions.get_orders.clear_cache()
         e2_queries.get_raw_order_data.clear_cache()
