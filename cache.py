@@ -2,8 +2,7 @@ import functools
 import threading
 import time
 
-
-CACHE_SECONDS = 900 # 15 minutes
+CACHE_SECONDS = 43200  # 12 hours
 
 
 def time_limited_cache(max_age_seconds):
@@ -44,4 +43,5 @@ def time_limited_cache(max_age_seconds):
 
         wrapper.clear_cache = clear_cache
         return wrapper
+
     return decorator
