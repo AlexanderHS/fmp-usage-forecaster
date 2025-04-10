@@ -1,6 +1,6 @@
 import datetime
 import os
-from typing import List
+from typing import List, Optional
 from flask import Flask, request
 
 # modules
@@ -41,27 +41,27 @@ def wait_dates():
 
 
 @app.route("/wait/<item_code>")
-def wait_times(item_code: str = None):
+def wait_times(item_code: Optional[str] = None):
     # return {'none': 'none'}
     """Returns the wait times for each item."""
     if item_code == "-NONE-":
         item_code = None
-    customer_code = request.args.get("customer_code", default=False, type=str)
+    customer_code: Optional[str] = request.args.get("customer_code", default=None, type=str)
     if customer_code == "-NONE-":
         customer_code = None
-    site_filter = request.args.get("site_filter", default=None, type=str)
+    site_filter: Optional[str] = request.args.get("site_filter", default=None, type=str)
     if site_filter == "-NONE-":
         site_filter = None
-    sales_territory = request.args.get("sales_territory", default=None, type=str)
+    sales_territory: Optional[str] = request.args.get("sales_territory", default=None, type=str)
     if sales_territory == "-NONE-":
         sales_territory = None
-    category = request.args.get("category", default=None, type=str)
+    category: Optional[str] = request.args.get("category", default=None, type=str)
     if category == "-NONE-":
         category = None
-    item_type = request.args.get("type", default=None, type=str)
+    item_type: Optional[str] = request.args.get("type", default=None, type=str)
     if item_type == "-NONE-":
         item_type = None
-    parent = request.args.get("parent", default=None, type=str)
+    parent: Optional[str] = request.args.get("parent", default=None, type=str)
     if parent == "-NONE-":
         parent = None
     show_waits = request.args.get("show_waits", default=False, type=to_bool)

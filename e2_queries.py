@@ -134,12 +134,24 @@ FROM [ManagementPortal].[dbo].[Item] AS [t0]
     rows = cursor.fetchall()
     item_costs = {}
     for row in rows:
-        if row.AvgPriceAUDEach or row.ListPriceAUDEach:
-            item_costs[row.Code] = (
-                Decimal(row.AvgPriceAUDEach)
-                if row.AvgPriceAUDEach
-                else Decimal(row.ListPriceAUDEach)
-            )
+        cost = None
+        # Try AvgPriceAUDEach first, but only if it's positive
+        if row.AvgPriceAUDEach:
+            avg_price = Decimal(row.AvgPriceAUDEach)
+            if avg_price > 0:
+                cost = avg_price
+        
+        # If avg price wasn't valid, try ListPriceAUDEach, but only if it's positive
+        if cost is None and row.ListPriceAUDEach:
+            list_price = Decimal(row.ListPriceAUDEach)
+            if list_price > 0:
+                cost = list_price
+        
+        # If we found a valid positive cost, store it
+        if cost is not None:
+            item_costs[row.Code] = cost
+        # else: implicitly, cost is 0 or item not included, effectively handling negative/zero prices
+
     return item_costs
 
 
@@ -196,6 +208,11 @@ cdl.ProcessedDate desc
     rows = cursor.fetchall()
     wait_times: List[models.WaitDatabaseLine] = []
     for row in rows:
+        qty_each_despatched = row.QtyEachDespatched
+        if qty_each_despatched < 0:
+            logging.warning(f"Calculated negative QtyEachDespatched ({qty_each_despatched}) for Item {row.ItemCode}, CDA {row.CustomerDespatchNo}. Using 0 instead. Check ConversionUnits for ItemPackaging.")
+            qty_each_despatched = 0
+            
         wait_time_line = models.WaitDatabaseLine(
             site=(
                 "90 Prosperity"
@@ -207,7 +224,7 @@ cdl.ProcessedDate desc
             wait_time_days=(
                 parse_date(row.ProcessedDate) - parse_date(row.DateRequired)
             ).days,
-            qty_eaches_sent=row.QtyEachDespatched,
+            qty_eaches_sent=qty_each_despatched,
             date_required=row.DateRequired,
             date_despatched=row.ProcessedDate,
             date_str=to_iso8601_date(row.ProcessedDate),

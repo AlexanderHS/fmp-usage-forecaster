@@ -31,12 +31,12 @@ class WaitDatabaseLine:
     item_category: str
     item_type: str
     item_category_parent: str
-    est_value: float = None
-    date_str: str = None
-    required_str: str = None
-    day: int = None
-    month: int = None
-    year: int = None
+    est_value: Optional[float] = None
+    date_str: Optional[str] = None
+    required_str: Optional[str] = None
+    day: Optional[int] = None
+    month: Optional[int] = None
+    year: Optional[int] = None
     
     # after init
     def __post_init__(self):
